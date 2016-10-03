@@ -591,7 +591,9 @@ function placeBuilding(mx,my,x){
 	}
 }
 
-function growTrees
+function growTrees(){
+	
+}
 
 function spawnPlayer(n,x,y){
 	var temp_pl_pos = {
