@@ -39,6 +39,7 @@ function find_path(grid, ye, xe, ys, xs, blocked,special){
 		y : ye
 	};
 
+	// console.log(starting);
 	
 	//Create queue
 
@@ -77,7 +78,7 @@ function find_path(grid, ye, xe, ys, xs, blocked,special){
 
 		//Check north
 	    if(p.y > 0){
-		    if(checked[p.y-1][p.x]==0 && (map[p.y-1][p.x]<blocked || map[p.y-1][p.x]==special)){
+		    if(checked[p.y-1][p.x]==0 && (map[p.y-1][p.x]<blocked || map[p.y-1][p.x]==special) && map[p.y-1][p.x]!=symbols.blueprint){
 		        checked[p.y-1][p.x]=1;
 		        var c = {
 		            x : p.x,
@@ -92,7 +93,7 @@ function find_path(grid, ye, xe, ys, xs, blocked,special){
 		
 		//Check east
 	    if(p.x < map_width){
-	    	if(checked[p.y][p.x+1]==0 && (map[p.y][p.x+1]<blocked || map[p.y][p.x+1]==special)){
+	    	if(checked[p.y][p.x+1]==0 && (map[p.y][p.x+1]<blocked || map[p.y][p.x+1]==special) && map[p.y][p.x+1]!=symbols.blueprint){
 	    		checked[p.y][p.x+1]=1;
 		        var c = {
 		            x : p.x+1,
@@ -109,7 +110,7 @@ function find_path(grid, ye, xe, ys, xs, blocked,special){
 
 	    //Check south
 	    if(p.y < map_height-1){
-	    	if(checked[p.y+1][p.x]==0 && (map[p.y+1][p.x]<blocked || map[p.y+1][p.x]==special)){
+	    	if(checked[p.y+1][p.x]==0 && (map[p.y+1][p.x]<blocked || map[p.y+1][p.x]==special) && map[p.y+1][p.x]!=symbols.blueprint){
 	    		checked[p.y+1][p.x]=1;
 	    		var c = {
 		            x : p.x,
@@ -124,7 +125,7 @@ function find_path(grid, ye, xe, ys, xs, blocked,special){
 
 	    // //Check west
 	    if(p.x > 0){
-	    	if(checked[p.y][p.x-1]==0 && (map[p.y][p.x-1]<blocked || map[p.y][p.x-1]==special)){
+	    	if(checked[p.y][p.x-1]==0 && (map[p.y][p.x-1]<blocked || map[p.y][p.x-1]==special) && map[p.y][p.x-1]!=symbols.blueprint){
 	    		checked[p.y][p.x-1]=1;
 	    		var c = {
 	    			x : p.x-1,

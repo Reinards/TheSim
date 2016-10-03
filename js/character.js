@@ -33,7 +33,8 @@ function Man(){
 	this.items = { //All that he has
 		house : 0,
 		apples : 0,
-		wood : 0
+		wood : 0,
+		fish : 0
 	};
 
 	this.task = []; //Task
@@ -41,172 +42,119 @@ function Man(){
 
 Man.prototype.use_path = function (y,x,y2,x2,complete){
 
+
 	this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
 	this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
 
 
+	//If the action is canceled
 	if(typeof todo[this.gotopos.y][this.gotopos.x].action =='undefined'){
+		this.path = [];
 		this.path.length = 0;
 		job[this.gotopos.y][this.gotopos.x]=0;
-		if(this.task[0]==tasks[1])
+		if(this.task[0]==tasks.getResources)
 			globTasksTaken.getWood--;
-		this.task[0]=tasks[0];
+		if(this.task[0]==tasks.collectApples)
+			globTasksTaken.getApples--;
+		if(this.task[0]==tasks.goFishing)
+			globTasksTaken.getFish--;
+		if(this.task[0]==tasks.doBuilding)
+			globTasksTaken.build--;
+
+		this.task[0]=tasks.idle;
 		return;
 	}
 
-	// console.log(this.reached);
-	if(complete){
-		if(x==x2 && y==y2){
-			// this.reached=true;
-			this.path.length = 0;
+	if(!complete){
 
-			if(this.task == tasks[1]){
-				if(map[y][x]==1){
-					this.cutTree();
-				}else{
-					this.getResources();
-				}
-			}
-			if(this.task == tasks[2]){
-				this.doBuilding();
-	 			// this.items.wood -= materials_needed[0];
-	 			// all_res-=materials_needed[0];
-	 		}
-	 		return;
-	 	}
+	 	if((y+1 == y2 && x==x2)||(y-1 == y2 && x==x2)||(y == y2 && x+1 == x2)||(y == y2 && x-1 == x2))
+	 	{
 
-	 	if(!this.reached){
-	 		var xtmp = x, ytmp = y;
-	 		ytmp = this.path[y][x].y;
-	 		xtmp = this.path[y][x].x;
-
-	 		
-	 		y = ytmp;
-	 		x = xtmp;
-
-	 		game.add.tween(this.sprite).to( { x: xtmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);		
-	 		game.add.tween(this.sprite).to( { y: ytmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);
-
-			// this.sprite.x = x*20;
-	 		// this.sprite.y = y*20;
-	 		game.time.events.add(this.speed*100, function(){
-	 			this.use_path(y,x,y2,x2,complete);
-	 		}, this);
-	 	}
-
-	}else{
-	// console.log(y+"/"+y2+" | "+x+"/"+x2);
-	 	if((y+1 == y2 && x==x2)||(y-1 == y2 && x==x2)||(y == y2 && x+1 == x2)||(y == y2 && x-1==x2)){
-
-	 		// this.reached=true;
+	 		this.reached=false;
+	 		this.path = [];
 	 		this.path.length = 0;
 
-	 		if(this.task[0] == tasks[1]){
+	 		if(this.task[0] == tasks.getResources){
 	 			if(map[this.gotopos.y][this.gotopos.x]==1){
 	 				this.cutTree();
 	 			}else{
 	 				this.getResources();
 	 			}
 	 		}
-	 		if(this.task[0] == tasks[2]){
+	 		if(this.task[0] == tasks.doBuilding){
 	 			this.doBuilding();
  			}
- 			if(this.task[0] == tasks[3]){
+ 			if(this.task[0] == tasks.goHome){
 	 			this.getHome();
  			}
- 			if(this.task[0] == tasks[5]){
+ 			if(this.task[0] == tasks.goFishing){
 	 			this.doFishing();
+ 			}
+ 			if(this.task[0] == tasks.collectApples){
+	 			this.collectApples();
  			}
  			return;
  		}
 
 	 	 if(!this.reached){
 
-	 		var xtmp = x, ytmp = y;
-	 		// if(this.task[0]==tasks[3]){
-	 		// 	console.log(xtmp+" "+ytmp);
-	 		// }
-	 		ytmp = this.path[y][x].y;
-	 		xtmp = this.path[y][x].x;
 
-	 		// console.log(xtmp+" "+ytmp);
+	 		var ytmp = this.path[y][x].y;
+	 		var xtmp = this.path[y][x].x;
+
+
+	 		// if(2>1){
+	 		if(map[ytmp][xtmp]==symbols.grass || map[ytmp][xtmp]==symbols.bridge){
+		 		y = ytmp;
+		 		x = xtmp;
+
+		 		game.add.tween(this.sprite).to( { x: xtmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);		
+		 		game.add.tween(this.sprite).to( { y: ytmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);
+
+		 		game.time.events.add(this.speed*100, function(){
+		 			this.use_path(y,x,y2,x2,complete);
+		 		}, this);
+		 	}else{
+		 		this.path = [];
+		 		this.path.length = 0;
+
+		 		this.path = find_path(map,this.pos_y,this.pos_x,this.gotopos.y,this.gotopos.x,1);
+
+		 		if(this.path!=0){
+					this.use_path(this.pos_y,this.pos_x,this.gotopos.y,this.gotopos.x,false);	
+				}else{
+					this.path = [];
+		 			this.path.length = 0;
+		 			job[this.gotopos.y][this.gotopos.x]=0;
+				}
+		 	}
+	 		// }else{
+	 		// 	this.reached=true;
+	 		// 	this.path = [];
+				// this.path.length = 0;
+
+				// job[this.gotopos.y][this.gotopos.x]=0;
+
+				// this.path = find_path(map,this.pos_y,this.pos_x,this.gotopos.y,this.gotopos.x,1);
+
+				// console.log(this.path);
+				// debugger;
+				// if(this.path!=0){
+				// 	if(job[this.gotopos.y][this.gotopos.x]==0){
+				// 		job[this.gotopos.y][this.gotopos.x]=1;
+				// 		this.reached=false;
+				// 		this.use_path(this.pos_y,this.pos_x,this.gotopos.y,this.gotopos.x,false);
+						
+				// 	}		
+				// }
+
+				// return;
 	 		
-	 		y = ytmp;
-	 		x = xtmp;
-
-	 		game.add.tween(this.sprite).to( { x: xtmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);		
-	 		game.add.tween(this.sprite).to( { y: ytmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);
-
-			// this.sprite.x = x*20;
-	 		// this.sprite.y = y*20;
-	 		game.time.events.add(this.speed*100, function(){
-	 			this.use_path(y,x,y2,x2,complete);
-	 		}, this);
 	 	}
  }
 
-};
-
-Man.prototype.getResources = function (){
-	// console.log("get");
-
-	this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
-	this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
-
-	//Find the nearest tree
-	var ending_pos = this.find_target_position(map,this.pos_x,this.pos_y,1,2);
-	this.gotopos = ending_pos;
-
-	this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1);
-
-	if(this.path!=0){
-		if(job[this.gotopos.y][this.gotopos.x]==0){
-			job[ending_pos.y][ending_pos.x]=1;
-			//Find if there is a path to that tree
-			
-			this.use_path(this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,false);
-			
-		}
-
-			
-	}else{
-			// job[ending_pos.y][ending_pos.x]=0;
-			globTasksTaken.getWood--;
-			this.task[0]=tasks[0];
-			return;
-	}
-
-	
-};
-
-Man.prototype.cutTree = function (){
-		// this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
-		// this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
-		// this.pos_x = this.gotopos.x;
-		// this.pos_y = this.gotopos.y;
-
-
-		this.icon = game.add.sprite(this.gotopos.x*map_prop.tile_size+map_prop.tile_size/4, this.gotopos.y*map_prop.tile_size+map_prop.tile_size/4, 'working');
-		
-		game.world.bringToTop(ui);
-		game.world.sendToBack(ground);
-
-		game.time.events.add(Phaser.Timer.SECOND * this.skills.forestry, function(){
-			this.icon.kill();
-
-			this.destroy_tree(this.gotopos.x,this.gotopos.y);
-			todo[this.gotopos.y][this.gotopos.x].destroy();
-			if(globTasks.wood>0){
-				globTasks.getWood--;
-				globTasksTaken.getWood--;
-			}
-			
-			this.reached=false;
-			this.task[0]=tasks[0];
-		}, this);
-};
-
-Man.prototype.find_target_position = function(grid, xs,ys,target,blocked){
+}
+Man.prototype.find_target_position = function(grid, xs,ys,target,blocked,action){
 	var map = grid;
 	var map_height = map.length;
 	var map_width = map[0].length;
@@ -249,7 +197,6 @@ Man.prototype.find_target_position = function(grid, xs,ys,target,blocked){
 		var p = rinda.shift();
 		prev_p = p;
 		
-		
 	    //Found result
 	 //    if(p===undefined){
 	 //    	map[p.y][p.x]==target;
@@ -259,13 +206,13 @@ Man.prototype.find_target_position = function(grid, xs,ys,target,blocked){
 		// 	target_exists=true;
 		// 	break;
 		// } else 
+
 		if(todo[p.y][p.x] != undefined){
-			if(map[p.y][p.x]==target && job[p.y][p.x]==0 && todo[p.y][p.x].action==1){
+			// console.log(map[p.y][p.x] + " ; "+job[p.y][p.x] + " ; "+);
+			if(map[p.y][p.x]==target && job[p.y][p.x]==0 && todo[p.y][p.x].action==action){
 
 				target_pos.x = p.x;
 				target_pos.y = p.y;
-
-				// console.log(target_pos.y);
 
 				target_exists=true;
 				break;
@@ -327,8 +274,9 @@ Man.prototype.find_target_position = function(grid, xs,ys,target,blocked){
 		
 
 	    //See filled nodes
-	    // var s = game.add.sprite(p.y*20, p.x*20, 'wall');
-		// s.scale.setTo(0.5);
+	 //    var s = game.add.sprite(p.y*20, p.x*20, 'wall');
+		// // s.scale.setTo(0.5);
+		// s.alpha = 0.5;
 
 	}
 
@@ -337,7 +285,151 @@ Man.prototype.find_target_position = function(grid, xs,ys,target,blocked){
 		}else{
 			return target_pos;
 		}
-};
+}
+
+
+//====================================//
+
+
+
+Man.prototype.getResources = function (){
+	this.path = [];
+	this.path.length = 0;
+
+	this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
+	this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
+
+	//Find the nearest tree
+	var ending_pos = this.find_target_position(map,this.pos_x,this.pos_y,symbols.tree,2,1);
+	this.gotopos = ending_pos;
+
+	this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1);
+
+	if(this.path!=0){
+		if(job[this.gotopos.y][this.gotopos.x]==0){
+			job[ending_pos.y][ending_pos.x]=1;
+
+			this.use_path(this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,false);	
+		}			
+	}else{
+			job[ending_pos.y][ending_pos.x]=0;
+			globTasksTaken.getWood--;
+			this.task[0]=tasks.idle;
+			return;
+	}
+
+	
+}
+
+Man.prototype.getApples = function (){
+	this.path = [];
+	this.path.length = 0;
+
+	this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
+	this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
+
+	//Find the nearest tree
+	var ending_pos = this.find_target_position(map,this.pos_x,this.pos_y,1,2,2);
+	this.gotopos = ending_pos;
+
+	this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1);
+
+	if(this.path!=0){
+		if(job[this.gotopos.y][this.gotopos.x]==0){
+			job[ending_pos.y][ending_pos.x]=1;
+
+			//Find if there is a path to that tree
+			
+			this.use_path(this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,false);
+			
+		}
+
+			
+	}else{
+			// job[ending_pos.y][ending_pos.x]=0;
+			globTasksTaken.getWood--;
+			this.task[0]=tasks.idle;
+			return;
+	}
+
+	
+}
+
+Man.prototype.collectApples = function (){
+
+	this.icon = game.add.sprite(this.gotopos.x*map_prop.tile_size+map_prop.tile_size/4, this.gotopos.y*map_prop.tile_size+map_prop.tile_size/4, 'basket');
+		
+	// game.world.bringToTop(ui);
+	// game.world.sendToBack(ground);
+
+	game.time.events.add(Phaser.Timer.SECOND * this.skills.forestry, function(){
+		this.icon.kill();
+
+		todo[this.gotopos.y][this.gotopos.x].destroy();
+		todo[this.gotopos.y][this.gotopos.x] = 0;
+
+		if(globTasks.getApples>0){
+			globTasks.getApples--;
+			globTasksTaken.getApples--;
+		}
+
+			//----------------------------
+			for (var i = 0; i < trees.children.length; i++) {  
+				var tree_x = Math.floor(trees.children[i].x/map_prop.tile_size);
+				var tree_y = Math.floor(trees.children[i].y/map_prop.tile_size);
+
+				if(tree_x == this.gotopos.x && tree_y == this.gotopos.y){
+					var tree = trees.children[i];
+
+					all_res.apples += tree.worth2;
+					this.items.apples += tree.worth2;
+					tree.worth2=0;
+
+					txt_apples.text = all_res.apples;
+
+					tree.loadTexture("tree");
+
+					break;
+				}
+			}
+
+			job[this.gotopos.y][this.gotopos.x]=0;
+
+			this.reached=false;
+			this.task[0]=tasks.idle;
+			
+	}, this);
+}
+
+Man.prototype.cutTree = function (){
+		// this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
+		// this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
+		// this.pos_x = this.gotopos.x;
+		// this.pos_y = this.gotopos.y;
+
+
+		this.icon = game.add.sprite(this.gotopos.x*map_prop.tile_size+map_prop.tile_size/4, this.gotopos.y*map_prop.tile_size+map_prop.tile_size/4, 'cut');
+		
+		// game.world.sendToBack(ground);
+
+		game.time.events.add(Phaser.Timer.SECOND * this.skills.forestry, function(){
+			this.icon.kill();
+
+			this.destroy_tree(this.gotopos.x,this.gotopos.y);
+			map[this.gotopos.y][this.gotopos.x] = symbols.grass;
+			todo[this.gotopos.y][this.gotopos.x].destroy();
+			todo[this.gotopos.y][this.gotopos.x] = 0;
+
+			if(globTasks.getWood>0){
+				globTasks.getWood--;
+				globTasksTaken.getWood--;
+			}
+			
+			this.reached=false;
+			this.task[0]=tasks.idle;
+		}, this);
+}
+
 Man.prototype.destroy_tree = function(pos_x,pos_y){
 	var tree;
 	for (var i = 0; i < trees.children.length; i++) {  
@@ -365,170 +457,186 @@ Man.prototype.destroy_tree = function(pos_x,pos_y){
 	txt_wood.text = all_res.wood;
 	txt_apples.text = all_res.apples;
 	tree.destroy();
-};
-Man.prototype.buildHouse = function(){
-	if(this.house_pos.x >=0){
-		this.blueprint = game.add.sprite(this.house_pos.x*map_prop.tile_size, this.house_pos.y*map_prop.tile_size, 'blueprint');
-		ground.add(this.blueprint);
-		this.blueprint.alpha = 0.5;
+}
+// Man.prototype.buildHouse = function(){
+// 	if(this.house_pos.x >=0){
+// 		this.blueprint = game.add.sprite(this.house_pos.x*map_prop.tile_size, this.house_pos.y*map_prop.tile_size, 'blueprint');
+// 		ground.add(this.blueprint);
+// 		this.blueprint.alpha = 0.5;
 
-		this.items.wood-=materials_needed[0];
-		all_res.wood-=materials_needed[0];
-		txt_wood.text = all_res.wood;
+// 		this.items.wood-=materials_needed[0];
+// 		all_res.wood-=materials_needed[0];
+// 		txt_wood.text = all_res.wood;
 
-		this.path = find_path(map,this.pos_y,this.pos_x,this.house_pos.y,this.house_pos.x,2);
+// 		this.path = find_path(map,this.pos_y,this.pos_x,this.house_pos.y,this.house_pos.x,2);
 
-		if(this.path!=0){
-			this.use_path(this.pos_y,this.pos_x,this.house_pos.y,this.house_pos.x,false);
+// 		if(this.path!=0){
+// 			this.use_path(this.pos_y,this.pos_x,this.house_pos.y,this.house_pos.x,false);
+// 		}
+// 	}else{
+// 		var spot_x = Math.floor(this.sprite.x/map_prop.tile_size);
+// 		var spot_y = Math.floor(this.sprite.y/map_prop.tile_size);
+
+// 		if((spot_y==map_prop.height && spot_x==0)){
+// 			if(map[spot_y][spot_x+1]==0){
+// 					this.house_pos.x = spot_x+1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y-1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y-1;
+// 					this.buildHouse();
+// 			}
+// 		}else if((spot_y==map_prop.height && spot_x==map_prop.width)){
+// 			if(map[spot_y][spot_x-1]==0){
+// 					this.house_pos.x = spot_x-1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y-1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y-1;
+// 					this.buildHouse();
+// 			}
+// 		}else if((spot_y==0 && spot_x==0)){
+// 			if(map[spot_y][spot_x+1]==0){
+// 					this.house_pos.x = spot_x+1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y+1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y+1;
+// 					this.buildHouse();
+// 			}
+// 		}else if((spot_y==0 && spot_x==map_prop.width)){
+// 			if(map[spot_y][spot_x+1]==0){
+// 					this.house_pos.x = spot_x+1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y+1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y+1;
+// 					this.buildHouse();
+// 			}
+// 		}else if((spot_y>0 && spot_y < map_prop.height && spot_x==0)){
+// 			if(map[spot_y][spot_x+1]==0){
+// 					this.house_pos.x = spot_x+1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y-1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y-1;
+// 					this.buildHouse();
+// 			}else if(map[spot_y+1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y+1;
+// 					this.buildHouse();
+// 			}
+// 		}else if((spot_y>0 && spot_y < map_prop.height && spot_x==map_prop.width)){
+// 			if(map[spot_y][spot_x+1]==0){
+// 					this.house_pos.x = spot_x-1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y-1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y-1;
+// 					this.buildHouse();
+// 			}else if(map[spot_y+1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y+1;
+// 					this.buildHouse();
+// 			}
+// 		}else if((spot_y==0 && spot_x>0 && spot_x < map_prop.width)){
+// 			if(map[spot_y][spot_x+1]==0){
+// 					this.house_pos.x = spot_x+1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y][spot_x-1]==0){
+// 					this.house_pos.x = spot_x-1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y+1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y+1;
+// 					this.buildHouse();
+// 			}
+// 		}else if((spot_y==map_prop.height && spot_x>0 && spot_x < map_prop.width)){
+// 			if(map[spot_y][spot_x+1]==0){
+// 					this.house_pos.x = spot_x+1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y][spot_x-1]==0){
+// 					this.house_pos.x = spot_x-1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y-1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y-1;
+// 					this.buildHouse();
+// 			}
+// 		}else{
+// 			if(map[spot_y][spot_x+1]==0){
+// 					this.house_pos.x = spot_x+1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y][spot_x-1]==0){
+// 					this.house_pos.x = spot_x-1;
+// 					this.house_pos.y = spot_y;
+// 					this.buildHouse();
+// 			}else if(map[spot_y+1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y+1;
+// 					this.buildHouse();
+// 			}else if(map[spot_y-1][spot_x]==0){
+// 					this.house_pos.x = spot_x;
+// 					this.house_pos.y = spot_y-1;
+// 					this.buildHouse();
+// 			}
+// 		}
+
+// 	}
+// }
+Man.prototype.startBuilding = function(x){
+	this.path = [];
+	this.path.length = 0;
+
+	this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
+	this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
+
+	//Find a buildable building
+	var ending_pos = this.find_target_position(map,this.pos_x,this.pos_y,symbols.blueprint,1,5);
+	this.gotopos = ending_pos;
+	if(ending_pos!=0){
+
+		if(todo[ending_pos.y][ending_pos.x].type==0){
+			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1);	
+		}else if(todo[ending_pos.y][ending_pos.x].type==1){
+
+			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1);
 		}
-	}else{
-		var spot_x = Math.floor(this.sprite.x/map_prop.tile_size);
-		var spot_y = Math.floor(this.sprite.y/map_prop.tile_size);
-
-		if((spot_y==map_prop.height && spot_x==0)){
-			if(map[spot_y][spot_x+1]==0){
-					this.house_pos.x = spot_x+1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y-1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y-1;
-					this.buildHouse();
-			}
-		}else if((spot_y==map_prop.height && spot_x==map_prop.width)){
-			if(map[spot_y][spot_x-1]==0){
-					this.house_pos.x = spot_x-1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y-1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y-1;
-					this.buildHouse();
-			}
-		}else if((spot_y==0 && spot_x==0)){
-			if(map[spot_y][spot_x+1]==0){
-					this.house_pos.x = spot_x+1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y+1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y+1;
-					this.buildHouse();
-			}
-		}else if((spot_y==0 && spot_x==map_prop.width)){
-			if(map[spot_y][spot_x+1]==0){
-					this.house_pos.x = spot_x+1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y+1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y+1;
-					this.buildHouse();
-			}
-		}else if((spot_y>0 && spot_y < map_prop.height && spot_x==0)){
-			if(map[spot_y][spot_x+1]==0){
-					this.house_pos.x = spot_x+1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y-1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y-1;
-					this.buildHouse();
-			}else if(map[spot_y+1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y+1;
-					this.buildHouse();
-			}
-		}else if((spot_y>0 && spot_y < map_prop.height && spot_x==map_prop.width)){
-			if(map[spot_y][spot_x+1]==0){
-					this.house_pos.x = spot_x-1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y-1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y-1;
-					this.buildHouse();
-			}else if(map[spot_y+1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y+1;
-					this.buildHouse();
-			}
-		}else if((spot_y==0 && spot_x>0 && spot_x < map_prop.width)){
-			if(map[spot_y][spot_x+1]==0){
-					this.house_pos.x = spot_x+1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y][spot_x-1]==0){
-					this.house_pos.x = spot_x-1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y+1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y+1;
-					this.buildHouse();
-			}
-		}else if((spot_y==map_prop.height && spot_x>0 && spot_x < map_prop.width)){
-			if(map[spot_y][spot_x+1]==0){
-					this.house_pos.x = spot_x+1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y][spot_x-1]==0){
-					this.house_pos.x = spot_x-1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y-1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y-1;
-					this.buildHouse();
-			}
-		}else{
-			if(map[spot_y][spot_x+1]==0){
-					this.house_pos.x = spot_x+1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y][spot_x-1]==0){
-					this.house_pos.x = spot_x-1;
-					this.house_pos.y = spot_y;
-					this.buildHouse();
-			}else if(map[spot_y+1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y+1;
-					this.buildHouse();
-			}else if(map[spot_y-1][spot_x]==0){
-					this.house_pos.x = spot_x;
-					this.house_pos.y = spot_y-1;
-					this.buildHouse();
-			}
-		}
-
-		// if(spot_y > 0 && spot_y < map_prop.height && spot_x > 0 && spot_x < map_prop.width){
-		// 	if(map[spot_y-1][spot_x]==0){
-		// 			this.house_pos.x = spot_x;
-		// 			this.house_pos.y = spot_y-1;
-		// 			this.buildHouse();
-		// 	}else if(map[spot_y][spot_x+1]==0){
-		// 			this.house_pos.x = spot_x+1;
-		// 			this.house_pos.y = spot_y;
-		// 			this.buildHouse();
-		// 	}else if(map[spot_y+1][spot_x]==0){
-		// 			this.house_pos.x = spot_x;
-		// 			this.house_pos.y = spot_y+1;
-		// 			this.buildHouse();
-		// 	}else if(map[spot_y][spot_x-1]==0){
-		// 			this.house_pos.x = spot_x-1;
-		// 			this.house_pos.y = spot_y;
-		// 			this.buildHouse();
-		// 	}else if(ma[spot_y][spot_x]==0){
-		// 		this.house_pos.x = spot_x;
-		// 		this.house_pos.y = spot_y;
-		// 		this.buildHouse();
-		// 	}
-		// }
+		
 	}
-};
+	else this.path = 0;
+
+	if(this.path!=0){
+		if(job[this.gotopos.y][this.gotopos.x]==0){
+			job[ending_pos.y][ending_pos.x]=1;
+
+			//Find if there is a path to that tree
+			this.use_path(this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,false);
+			
+		}
+
+			
+	}else{
+			// job[ending_pos.y][ending_pos.x]=0;
+			globTasksTaken.build--;
+			this.task[0]=tasks.idle;
+			return;
+	}
+}
 Man.prototype.doBuilding = function(){
-	this.blueprint.destroy();
-	this.blueprint = game.add.sprite(this.house_pos.x*map_prop.tile_size, this.house_pos.y*map_prop.tile_size, 'build');
+	todo[this.gotopos.y][this.gotopos.x].alpha=0;
+	this.blueprint = game.add.sprite(this.gotopos.x*map_prop.tile_size, this.gotopos.y*map_prop.tile_size, 'build');
 	this.blueprint.animations.add('build');
 	this.blueprint.animations.play('build', this.skills.building/3, false);
 
@@ -537,17 +645,35 @@ Man.prototype.doBuilding = function(){
 
 		this.blueprint.destroy();
 
-		map[this.house_pos.y][this.house_pos.x]=3;
+		if(todo[this.gotopos.y][this.gotopos.x].type==0){ //Bridge
+			var tile = game.add.sprite(this.gotopos.x*map_prop.tile_size, this.gotopos.y*map_prop.tile_size, 'bridge');
+			map[this.gotopos.y][this.gotopos.x]=symbols.bridge;
+		}
+		if(todo[this.gotopos.y][this.gotopos.x].type==1){ //Tree
+			var tile = game.add.sprite(this.gotopos.x*map_prop.tile_size, this.gotopos.y*map_prop.tile_size, 'tree');
+			tile.scale.setTo(0.5);
 
-		this.name_txt = game.add.text(this.house_pos.x*map_prop.tile_size+24, this.house_pos.y*map_prop.tile_size+48, this.name, style_name);
-		this.name_txt.anchor.setTo(0.5,0);
+			tile.x+=map_prop.tile_size/4;
+			tile.y+=map_prop.tile_size/4;
 
-		this.items.house = 1;
-		this.task[0]=tasks[0];
-	 	this.house_sprite = game.add.sprite(this.house_pos.x*map_prop.tile_size, this.house_pos.y*map_prop.tile_size, 'house');
-	 	this.house_sprite.scale.setTo(2);
+			tile.worth = rnd(1,4);
+			tile.worth2 = 0;
+			map[this.gotopos.y][this.gotopos.x]=symbols.tree;
 
-	 	game.world.bringToTop(ui);
+			trees.add(tile);
+		}
+
+		todo[this.gotopos.y][this.gotopos.x].destroy();
+		todo[this.gotopos.y][this.gotopos.x]=0;
+		job[this.gotopos.y][this.gotopos.x]=0;
+
+		globTasks.build--;
+		globTasksTaken.build--;
+		this.task[0]=tasks.idle;
+	 	
+
+	 	// game.world.bringToTop(middle_level);
+	 	// game.world.bringToTop(ui);
 	 }, this);
 }
 Man.prototype.goToSleep = function(){
@@ -573,7 +699,7 @@ Man.prototype.goToSleep = function(){
 	}else{
 		var side = rnd(0,4);
 		if(side<=2){
-			this.task[0]=tasks[4];
+			this.task[0]=tasks.sleep;
 
 			// this.sprite.angle = 90;
 			game.add.tween(this.sprite).to( { angle: 90 }, 300, "Linear", true);	
@@ -592,7 +718,7 @@ Man.prototype.goToSleep = function(){
 
 			
 		}else{
-			this.task[0]=tasks[4];
+			this.task[0]=tasks.sleep;
 
 			// this.sprite.angle = 270;
 			game.add.tween(this.sprite).to( { angle: -90 }, 300, "Linear", true);	
@@ -612,14 +738,14 @@ Man.prototype.goToSleep = function(){
 	}
 	
 }
-Man.prototype.getHome = function(){
-	this.task[0]=tasks[4];
-	this.sprite.alpha=0;
-	this.icon = game.add.sprite(this.house_pos.x*map_prop.tile_size, this.house_pos.y*map_prop.tile_size, 'sleep');
+// Man.prototype.getHome = function(){
+// 	this.task[0]=tasks.sleep;
+// 	this.sprite.alpha=0;
+// 	this.icon = game.add.sprite(this.house_pos.x*map_prop.tile_size, this.house_pos.y*map_prop.tile_size, 'sleep');
 
-	this.icon.animations.add('sleeping');
-    this.icon.animations.play('sleeping', 4, true);
-}
+// 	this.icon.animations.add('sleeping');
+//     this.icon.animations.play('sleeping', 4, true);
+// }
 Man.prototype.wakeUp = function(){
 	if(this.items.house>0){
 		this.sprite.alpha = 1;
@@ -628,37 +754,130 @@ Man.prototype.wakeUp = function(){
 		game.add.tween(this.sprite).to( { angle: 0 }, 300, "Linear", true);	
 		this.sprite.angle = 0;
 		this.icon.destroy();
+
+		this.sprite.anchor.setTo(0);
+			this.sprite.x-=24;
+			this.sprite.y-=24;
 	}
 	
 }
 Man.prototype.goFishing = function(){
-	var ending_pos = this.find_target_position(map,this.pos_x,this.pos_y,2,3)
+
+	this.path = [];
+	this.path.length = 0;
+
+	var ending_pos = this.find_target_position(map,this.pos_x,this.pos_y,2,3,3)
 	this.gotopos = ending_pos;
 
-	if(job[ending_pos.y][ending_pos.x]==0){
+	this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1);
+
+	if(this.path!=0){
+		if(job[ending_pos.y][ending_pos.x]==0){
 		job[ending_pos.y][ending_pos.x]=1;
 
 		this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
 		this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
 
-		//Find if there is a path to that tree
-		this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1,2);
+		this.use_path(this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,false);
 		
-		if(this.path!=0){
-			//Go to that tree
-
-			this.use_path(this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,false);
 		}
+
+		
 	}else{
-		game.time.events.add(Phaser.Timer.SECOND*2, function(){
-			//Try again later
-			this.goFishing();
-		}, this);
+		jobs[this.gotopos.y][this.gotopos.x];
+		globTasksTaken.getFish--;
+		this.task[0]=tasks.idle;
+		return;
 	}
+
+	
 }
 Man.prototype.doFishing = function(){
 	this.icon = game.add.sprite(Math.floor(this.sprite.x/map_prop.tile_size*map_prop.tile_size)+12, Math.floor(this.sprite.y/map_prop.tile_size*map_prop.tile_size)+24, 'fishing');
-		
-	game.world.bringToTop(ui);
-	game.world.sendToBack(ground);
+	
+	// game.world.bringToTop(ui);
+	// game.world.sendToBack(ground);
+
+	todo[this.gotopos.y][this.gotopos.x].alpha=0;
+
+	var fishingTime = rnd(7000,15000);
+	var reps = rnd(2,4);
+
+	game.time.events.add(fishingTime, function(){
+		var r = rnd(1,2);
+		this.items.fish+=r;
+		all_res.fish+=r;
+		txt_fish.text = all_res.fish;
+
+		game.time.events.add(fishingTime, function(){
+			var r = rnd(1,2);
+			this.items.fish+=r;
+			all_res.fish+=r;
+			txt_fish.text = all_res.fish;
+
+			if(reps>=3){
+
+				game.time.events.add(fishingTime, function(){
+					var r = rnd(1,2);
+					this.items.fish+=r;
+					all_res.fish+=r;
+					txt_fish.text = all_res.fish;
+
+					if(reps>=4){
+
+						game.time.events.add(fishingTime, function(){
+							var r = rnd(1,2);
+							this.items.fish+=r;
+							all_res.fish+=r;
+							txt_fish.text = all_res.fish;
+
+							job[this.gotopos.y][this.gotopos.x]=0;
+
+							todo[this.gotopos.y][this.gotopos.x].destroy();
+							todo[this.gotopos.y][this.gotopos.x]=0;
+
+							if(globTasks.getFish>0){
+								globTasks.getFish--;
+							}
+							globTasksTaken.getFish--;
+
+							this.icon.kill();
+							this.reached=false;
+							this.task[0]=tasks.idle;
+							return;
+
+						}, this);
+
+					}else{
+						todo[this.gotopos.y][this.gotopos.x].destroy();
+
+						if(globTasks.getFish>0){
+							globTasks.getFish--;
+							globTasksTaken.getFish--;
+						}
+
+						this.icon.kill();
+						this.reached=false;
+						this.task[0]=tasks.idle;
+						return;
+					}
+
+				}, this);
+
+			}else{
+				todo[this.gotopos.y][this.gotopos.x].destroy();
+
+				if(globTasks.getFish>0){
+					globTasks.getFish--;
+					globTasksTaken.getFish--;
+				}
+
+				this.icon.kill();
+				this.reached=false;
+				this.task[0]=tasks.idle;
+				return;
+			}
+
+		}, this);
+	}, this);
 }

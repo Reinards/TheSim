@@ -1,0 +1,50 @@
+if(complete){
+		if(x==x2 && y==y2){
+			// this.reached=true;
+			this.path.length = 0;
+
+			if(this.task == tasks[1]){
+				if(map[y][x]==1){
+					this.cutTree();
+				}else{
+					this.getResources();
+				}
+			}
+			if(this.task == tasks[2]){
+				this.doBuilding();
+	 			// this.items.wood -= materials_needed[0];
+	 			// all_res-=materials_needed[0];
+	 		}
+	 		return;
+	 	}
+
+	 	if(!this.reached){
+	 		var xtmp = x, ytmp = y;
+		 		ytmp = this.path[y][x].y;
+		 		xtmp = this.path[y][x].x;
+
+		 	if(todo[ytmp][xtmp]==0 || typeof todo[ytmp][xtmp] != undefined){
+		 		y = ytmp;
+		 		x = xtmp;
+
+		 		game.add.tween(this.sprite).to( { x: xtmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);		
+		 		game.add.tween(this.sprite).to( { y: ytmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);
+
+				// this.sprite.x = x*20;
+		 		// this.sprite.y = y*20;
+		 		game.time.events.add(this.speed*100, function(){
+		 			this.use_path(y,x,y2,x2,complete);
+		 		}, this);
+	 		}else{
+	 			this.reached=true;
+	 			this.path = [];
+				this.path.length = 0;
+				job[this.gotopos.y][this.gotopos.x]=0;
+				if(this.task[0]==tasks[1])
+					globTasksTaken.getWood--;
+				this.task[0]=tasks[0];
+				return;
+	 		}
+	 	}
+
+	}

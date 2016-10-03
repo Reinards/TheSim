@@ -116,7 +116,7 @@ function generate_map(width,height,gen_trees,gen_water){
 				var decision = rnd(0,200);
 
 				if(decision == 0){
-
+					waters++;
 				//--------LAKE GENERATION--------------
 					var water_count = rnd(5,30);
 					// var water_count = 5;
