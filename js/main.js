@@ -206,6 +206,7 @@ function create() {
 					var tile = game.add.sprite(j*map_prop.tile_size, i*map_prop.tile_size, 'tree2');
 					tile.worth = rnd(4,10);
 					tile.worth2 = rnd(1,5);
+					tile.growth = 2.0;
 				}
 				trees.add(tile);
 				ground.add(tile_under);
@@ -241,7 +242,7 @@ function doStuff() {
 
 function updateTime() {
 
-	if(game_time.minutes<30){
+	if(game_time.minutes<10){
 		game_time.minutes++;
 	}else{
 		game_time.minutes=0;
@@ -315,8 +316,8 @@ function checkTask(){
 				men[i].goToSleep();
 			}else{
 
-				console.log("W "+globTasks.getWood + "/" + globTasksTaken.getWood);
-				console.log("B "+globTasks.build + "/" + globTasksTaken.build);
+				// console.log("W "+globTasks.getWood + "/" + globTasksTaken.getWood);
+				// console.log("B "+globTasks.build + "/" + globTasksTaken.build);
 
 				if(globTasks.getWood > 0 && globTasks.getWood > globTasksTaken.getWood && !action){
 
@@ -592,7 +593,29 @@ function placeBuilding(mx,my,x){
 }
 
 function growTrees(){
-	
+
+	trees.forEach(function(tree) {
+		
+		if(tree.worth2<=6 && tree.growth==2.0){
+        	tree.worth2+=2;
+        }
+        if(tree.worth2>=6){
+        	tree.loadTexture("tree2");
+        }
+
+        if (tree.growth < 1.0)
+        {
+            tree.growth += 0.2;
+        }
+        if(tree.growth == 1.0){
+        	game.add.tween(tree.scale).to( { x: 1, y:1 }, 500, "Linear", true);
+        	tree.anchor.setTo(0);
+        	game.add.tween(tree).to( { x: tree.x-map_prop.tile_size/4, y:tree.y-=map_prop.tile_size/4 }, 500, "Linear", true);
+        	tree.growth=2.0;
+        	tree.worth2=0;
+        }
+        
+    });
 }
 
 function spawnPlayer(n,x,y){

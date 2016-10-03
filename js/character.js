@@ -658,6 +658,7 @@ Man.prototype.doBuilding = function(){
 
 			tile.worth = rnd(1,4);
 			tile.worth2 = 0;
+			tile.growth = 0.0;
 			map[this.gotopos.y][this.gotopos.x]=symbols.tree;
 
 			trees.add(tile);
