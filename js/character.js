@@ -104,7 +104,7 @@ Man.prototype.use_path = function (y,x,y2,x2,complete){
 
 
 	 		// if(2>1){
-	 		if(map[ytmp][xtmp]==symbols.grass || map[ytmp][xtmp]==symbols.bridge){
+	 		if(map[ytmp][xtmp]==symbols.grass || map[ytmp][xtmp]==symbols.bridge || map[ytmp][xtmp]==symbols.floor || (todo[ytmp][xtmp].type==2 && map[ytmp][xtmp]==symbols.blueprint)){
 		 		y = ytmp;
 		 		x = xtmp;
 
@@ -115,6 +115,7 @@ Man.prototype.use_path = function (y,x,y2,x2,complete){
 		 			this.use_path(y,x,y2,x2,complete);
 		 		}, this);
 		 	}else{
+		 		console.log("MAPS : "+map[ytmp][xtmp]);
 		 		this.path = [];
 		 		this.path.length = 0;
 
@@ -339,7 +340,8 @@ Man.prototype.getApples = function (){
 			job[ending_pos.y][ending_pos.x]=1;
 
 			//Find if there is a path to that tree
-			
+
+			todo[this.gotopos.y][this.gotopos.x].started=true;			
 			this.use_path(this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,false);
 			
 		}
@@ -358,7 +360,8 @@ Man.prototype.getApples = function (){
 Man.prototype.collectApples = function (){
 
 	this.icon = game.add.sprite(this.gotopos.x*map_prop.tile_size+map_prop.tile_size/4, this.gotopos.y*map_prop.tile_size+map_prop.tile_size/4, 'basket');
-		
+	
+	
 	// game.world.bringToTop(ui);
 	// game.world.sendToBack(ground);
 
@@ -410,7 +413,7 @@ Man.prototype.cutTree = function (){
 
 		this.icon = game.add.sprite(this.gotopos.x*map_prop.tile_size+map_prop.tile_size/4, this.gotopos.y*map_prop.tile_size+map_prop.tile_size/4, 'cut');
 		
-		// game.world.sendToBack(ground);
+		todo[this.gotopos.y][this.gotopos.x].started=true;
 
 		game.time.events.add(Phaser.Timer.SECOND * this.skills.forestry, function(){
 			this.icon.kill();
@@ -608,10 +611,19 @@ Man.prototype.startBuilding = function(x){
 	if(ending_pos!=0){
 
 		if(todo[ending_pos.y][ending_pos.x].type==0){
-			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1);	
-		}else if(todo[ending_pos.y][ending_pos.x].type==1){
+			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1,null,false);	
+		}
+		if(todo[ending_pos.y][ending_pos.x].type==1){
 
-			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1);
+			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1,null,false);
+		}
+		if(todo[ending_pos.y][ending_pos.x].type==2){
+
+			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1,null,true);
+		}
+		if(todo[ending_pos.y][ending_pos.x].type==3){
+
+			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1,null,false);
 		}
 		
 	}
@@ -620,7 +632,7 @@ Man.prototype.startBuilding = function(x){
 	if(this.path!=0){
 		if(job[this.gotopos.y][this.gotopos.x]==0){
 			job[ending_pos.y][ending_pos.x]=1;
-
+			console.log("Get building");
 			//Find if there is a path to that tree
 			this.use_path(this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,false);
 			
@@ -640,6 +652,8 @@ Man.prototype.doBuilding = function(){
 	this.blueprint.animations.add('build');
 	this.blueprint.animations.play('build', this.skills.building/3, false);
 
+	todo[this.gotopos.y][this.gotopos.x].started=true;
+
 
 	this.blueprint.animations.currentAnim.onComplete.add(function () {
 
@@ -648,6 +662,7 @@ Man.prototype.doBuilding = function(){
 		if(todo[this.gotopos.y][this.gotopos.x].type==0){ //Bridge
 			var tile = game.add.sprite(this.gotopos.x*map_prop.tile_size, this.gotopos.y*map_prop.tile_size, 'bridge');
 			map[this.gotopos.y][this.gotopos.x]=symbols.bridge;
+			ground.add(tile);
 		}
 		if(todo[this.gotopos.y][this.gotopos.x].type==1){ //Tree
 			var tile = game.add.sprite(this.gotopos.x*map_prop.tile_size, this.gotopos.y*map_prop.tile_size, 'tree');
@@ -663,7 +678,26 @@ Man.prototype.doBuilding = function(){
 
 			trees.add(tile);
 		}
+		if(todo[this.gotopos.y][this.gotopos.x].type==2){ //Floor
 
+			var tile;
+			for (var i = 0; i < ground.children.length; i++) {  
+				var tile_x = Math.floor(ground.children[i].x/map_prop.tile_size);
+				var tile_y = Math.floor(ground.children[i].y/map_prop.tile_size);
+
+				if(tile_x == this.gotopos.x && tile_y == this.gotopos.y){
+					tile = ground.children[i];
+					break;
+				}
+			}
+			map[this.gotopos.y][this.gotopos.x]=symbols.grass;
+			tile.loadTexture("floor");
+		}
+		if(todo[this.gotopos.y][this.gotopos.x].type==3){ //Bridge
+			var tile = game.add.sprite(this.gotopos.x*map_prop.tile_size, this.gotopos.y*map_prop.tile_size, 'wall');
+			map[this.gotopos.y][this.gotopos.x]=symbols.wall;
+			ground.add(tile);
+		}
 		todo[this.gotopos.y][this.gotopos.x].destroy();
 		todo[this.gotopos.y][this.gotopos.x]=0;
 		job[this.gotopos.y][this.gotopos.x]=0;
@@ -796,6 +830,8 @@ Man.prototype.goFishing = function(){
 Man.prototype.doFishing = function(){
 	this.icon = game.add.sprite(Math.floor(this.sprite.x/map_prop.tile_size*map_prop.tile_size)+12, Math.floor(this.sprite.y/map_prop.tile_size*map_prop.tile_size)+24, 'fishing');
 	
+	todo[this.gotopos.y][this.gotopos.x].started=true;
+
 	// game.world.bringToTop(ui);
 	// game.world.sendToBack(ground);
 

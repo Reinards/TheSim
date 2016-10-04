@@ -1,7 +1,7 @@
 var reached=false;
 
 
-function find_path(grid, ye, xe, ys, xs, blocked,special){
+function find_path(grid, ye, xe, ys, xs, blocked,special,blueprints){
 
 	//Clone map
 
@@ -75,69 +75,121 @@ function find_path(grid, ye, xe, ys, xs, blocked,special){
 			break;
 		}	
 
+		if(blueprints){
+			//Check north
+		    if(p.y > 0){
+			    if(checked[p.y-1][p.x]==0 && (map[p.y-1][p.x]<blocked || map[p.y-1][p.x]==special)){
+			        checked[p.y-1][p.x]=1;
+			        var c = {
+			            x : p.x,
+			            y : p.y-1
+			        };
+			        rinda.push(c);      
 
-		//Check north
-	    if(p.y > 0){
-		    if(checked[p.y-1][p.x]==0 && (map[p.y-1][p.x]<blocked || map[p.y-1][p.x]==special) && map[p.y-1][p.x]!=symbols.blueprint){
-		        checked[p.y-1][p.x]=1;
-		        var c = {
-		            x : p.x,
-		            y : p.y-1
-		        };
-		        rinda.push(c);      
+			        route[p.y-1][p.x].x = p.x;
+		            route[p.y-1][p.x].y = p.y;
+			    }
+			}
+			//Check east
+		    if(p.x < map_width){
+		    	if(checked[p.y][p.x+1]==0 && (map[p.y][p.x+1]<blocked || map[p.y][p.x+1]==special)){
+		    		checked[p.y][p.x+1]=1;
+			        var c = {
+			            x : p.x+1,
+			            y : p.y
+			        };
+			        rinda.push(c);
 
-		        route[p.y-1][p.x].x = p.x;
-	            route[p.y-1][p.x].y = p.y;
+			        route[p.y][p.x+1].x = p.x;
+		            route[p.y][p.x+1].y = p.y;
+		    	}
+		    }
+		    //Check south
+		    if(p.y < map_height-1){
+		    	if(checked[p.y+1][p.x]==0 && (map[p.y+1][p.x]<blocked || map[p.y+1][p.x]==special)){
+		    		checked[p.y+1][p.x]=1;
+		    		var c = {
+			            x : p.x,
+			            y : p.y+1
+			        };
+			        rinda.push(c);
+
+			        route[p.y+1][p.x].x = p.x;
+		            route[p.y+1][p.x].y = p.y;
+		    	}
+		    }
+		    // //Check west
+		    if(p.x > 0){
+		    	if(checked[p.y][p.x-1]==0 && (map[p.y][p.x-1]<blocked || map[p.y][p.x-1]==special)){
+		    		checked[p.y][p.x-1]=1;
+		    		var c = {
+		    			x : p.x-1,
+		    			y : p.y
+		    		};
+		    		rinda.push(c);
+
+		    		route[p.y][p.x-1].x = p.x;
+		    		route[p.y][p.x-1].y = p.y;
+		    	}
+		    }
+		}else{
+			//Check north
+		    if(p.y > 0){
+			    if(checked[p.y-1][p.x]==0 && (map[p.y-1][p.x]<blocked || map[p.y-1][p.x]==special) && map[p.y-1][p.x]!=symbols.blueprint){
+			        checked[p.y-1][p.x]=1;
+			        var c = {
+			            x : p.x,
+			            y : p.y-1
+			        };
+			        rinda.push(c);      
+
+			        route[p.y-1][p.x].x = p.x;
+		            route[p.y-1][p.x].y = p.y;
+			    }
+			}
+			//Check east
+		    if(p.x < map_width){
+		    	if(checked[p.y][p.x+1]==0 && (map[p.y][p.x+1]<blocked || map[p.y][p.x+1]==special) && map[p.y][p.x+1]!=symbols.blueprint){
+		    		checked[p.y][p.x+1]=1;
+			        var c = {
+			            x : p.x+1,
+			            y : p.y
+			        };
+			        rinda.push(c);
+
+			        route[p.y][p.x+1].x = p.x;
+		            route[p.y][p.x+1].y = p.y;
+		    	}
+		    }
+		    //Check south
+		    if(p.y < map_height-1){
+		    	if(checked[p.y+1][p.x]==0 && (map[p.y+1][p.x]<blocked || map[p.y+1][p.x]==special) && map[p.y+1][p.x]!=symbols.blueprint){
+		    		checked[p.y+1][p.x]=1;
+		    		var c = {
+			            x : p.x,
+			            y : p.y+1
+			        };
+			        rinda.push(c);
+
+			        route[p.y+1][p.x].x = p.x;
+		            route[p.y+1][p.x].y = p.y;
+		    	}
+		    }
+		    // //Check west
+		    if(p.x > 0){
+		    	if(checked[p.y][p.x-1]==0 && (map[p.y][p.x-1]<blocked || map[p.y][p.x-1]==special) && map[p.y][p.x-1]!=symbols.blueprint){
+		    		checked[p.y][p.x-1]=1;
+		    		var c = {
+		    			x : p.x-1,
+		    			y : p.y
+		    		};
+		    		rinda.push(c);
+
+		    		route[p.y][p.x-1].x = p.x;
+		    		route[p.y][p.x-1].y = p.y;
+		    	}
 		    }
 		}
-		
-		//Check east
-	    if(p.x < map_width){
-	    	if(checked[p.y][p.x+1]==0 && (map[p.y][p.x+1]<blocked || map[p.y][p.x+1]==special) && map[p.y][p.x+1]!=symbols.blueprint){
-	    		checked[p.y][p.x+1]=1;
-		        var c = {
-		            x : p.x+1,
-		            y : p.y
-		        };
-		        rinda.push(c);
-
-		        route[p.y][p.x+1].x = p.x;
-	            route[p.y][p.x+1].y = p.y;
-	    	}
-	    }
-
-	    
-
-	    //Check south
-	    if(p.y < map_height-1){
-	    	if(checked[p.y+1][p.x]==0 && (map[p.y+1][p.x]<blocked || map[p.y+1][p.x]==special) && map[p.y+1][p.x]!=symbols.blueprint){
-	    		checked[p.y+1][p.x]=1;
-	    		var c = {
-		            x : p.x,
-		            y : p.y+1
-		        };
-		        rinda.push(c);
-
-		        route[p.y+1][p.x].x = p.x;
-	            route[p.y+1][p.x].y = p.y;
-	    	}
-	    }
-
-	    // //Check west
-	    if(p.x > 0){
-	    	if(checked[p.y][p.x-1]==0 && (map[p.y][p.x-1]<blocked || map[p.y][p.x-1]==special) && map[p.y][p.x-1]!=symbols.blueprint){
-	    		checked[p.y][p.x-1]=1;
-	    		var c = {
-	    			x : p.x-1,
-	    			y : p.y
-	    		};
-	    		rinda.push(c);
-
-	    		route[p.y][p.x-1].x = p.x;
-	    		route[p.y][p.x-1].y = p.y;
-	    	}
-	    }
-
 	    //See filled nodes
 
 		// s.scale.setTo(0.5);

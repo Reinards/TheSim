@@ -14,9 +14,11 @@ var waters=0;
 var symbols = {
 	grass:0,
 	tree:1,
+	wall:1.1,
 	water:2,
 	bridge:0.1,
-	blueprint:0.2
+	blueprint:0.2,
+	floor:0.3
 };
 
 //An array of occupied tiles
@@ -101,7 +103,12 @@ var globTasksTaken = {
 	build : 0
 };
 //Building
-var materials_needed = [30,3,2];
+var materials_needed = {
+	bridge : 3,
+	tree : 2,
+	floor : 3,
+	wall : 4
+};
 //House, Bridge
 //---------
 
@@ -116,6 +123,7 @@ function preload() {
 	//Tiles
 	game.load.image('grass', 'assets/images/tiles/grass.png');  //grass
 	game.load.image('grass2', 'assets/images/tiles/grass2.png'); //grass2
+	game.load.image('floor', 'assets/images/tiles/floor.png'); //Wooden floor
 	game.load.image('house', 'assets/images/tiles/house.png'); //house
 	game.load.image('wall', 'assets/images/tiles/wall.png');  //wall
 	game.load.image('bridge', 'assets/images/tiles/bridge.png');  //bridge
@@ -154,6 +162,8 @@ function preload() {
 	game.load.image('construct', 'assets/images/ui/construct.png');
 		game.load.image('bridge_ui', 'assets/images/ui/bridge.png');
 		game.load.image('plant_tree', 'assets/images/ui/plant_tree.png');
+		game.load.image('floor_gui', 'assets/images/ui/floor_gui.png');
+		game.load.image('wall_gui', 'assets/images/ui/wall_gui.png');
 
 	game.load.image('default', 'assets/images/cursors/default.png');
 	game.load.image('cut', 'assets/images/cursors/cursor_cut.png');
@@ -248,6 +258,7 @@ function updateTime() {
 		game_time.minutes=0;
 		if(game_time.hours<24){
 			game_time.hours++;
+			growTrees();
 			if(game_time.hours == 19)
 				game.add.tween(night).to( { alpha: 0.6 }, (10000*5), "Linear", true);
 			else if(game_time.hours == 4)
@@ -258,7 +269,7 @@ function updateTime() {
 			game_time.hours=0;
 			if(game_time.days<30){
 				game_time.days++;
-				growTrees();
+				
 			}else{
 				game_time.days=0;
 				if(game_time.months<12){
@@ -436,12 +447,13 @@ function markTree(mx,my){
 	if(map[tmy][tmx]==1 && todo[tmy][tmx]==0 && !tempChoosed){
 		todo[tmy][tmx]=game.add.sprite(tmx*map_prop.tile_size+map_prop.tile_size/4, tmy*map_prop.tile_size+map_prop.tile_size/4, 'cut');
 		todo[tmy][tmx].action = 1;
+		todo[tmy][tmx].started=false;
 		todo[tmy][tmx].alpha = 0.5;
 
 		globTasks.getWood +=1;
 		tempChoosed=true;
 
-	 }else if(map[tmy][tmx]==1 && todo[tmy][tmx].action==1 && !tempChoosed){
+	 }else if(map[tmy][tmx]==1 && todo[tmy][tmx].action==1 && !tempChoosed && !todo[tmy][tmx].started){
 	 	todo[tmy][tmx].destroy();
 	 	todo[tmy][tmx]=0;
 
@@ -475,11 +487,12 @@ function markAppleTree(mx,my){
 		todo[tmy][tmx]=game.add.sprite(tmx*map_prop.tile_size+map_prop.tile_size/4, tmy*map_prop.tile_size+map_prop.tile_size/4, 'basket');
 		todo[tmy][tmx].action = 2;
 		todo[tmy][tmx].alpha = 0.5;
+		todo[tmy][tmx].started=false;
 
 		globTasks.getApples +=1;
 		tempChoosed=true;
 
-	 }else if(map[tmy][tmx]==1 && todo[tmy][tmx].action==2 && !tempChoosed && treeNow.worth2>0){
+	 }else if(map[tmy][tmx]==1 && todo[tmy][tmx].action==2 && !tempChoosed && treeNow.worth2>0 && !todo[tmy][tmx].started){
 	 	todo[tmy][tmx].destroy();
 	 	todo[tmy][tmx]=0;
 
@@ -513,11 +526,12 @@ function markFishingSpot(mx,my){
 		todo[tmy][tmx]=game.add.sprite(tmx*map_prop.tile_size+map_prop.tile_size/4, tmy*map_prop.tile_size+map_prop.tile_size/4, 'fishing');
 		todo[tmy][tmx].action = 3;
 		todo[tmy][tmx].alpha = 0.5;
+		todo[tmy][tmx].started=false;
 
 		globTasks.getFish +=1;
 		tempChoosed=true;
 
-	 }else if(map[tmy][tmx]==2 && todo[tmy][tmx].action==3 && !tempChoosed){
+	 }else if(map[tmy][tmx]==2 && todo[tmy][tmx].action==3 && !tempChoosed && !todo[tmy][tmx].started){
 	 	todo[tmy][tmx].destroy();
 	 	todo[tmy][tmx]=0;
 
@@ -535,35 +549,35 @@ function placeBuilding(mx,my,x){
 
 
 	if(x==0){ //Bridge
-		if(map[tmy][tmx]==symbols.water && todo[tmy][tmx]==0 && all_res.wood>=materials_needed[1]){
+		if(map[tmy][tmx]==symbols.water && todo[tmy][tmx]==0 && all_res.wood>=materials_needed.bridge){
 			
 			//Izveido tur blueprintu
 			todo[tmy][tmx]=game.add.sprite(tmx*map_prop.tile_size, tmy*map_prop.tile_size, 'bridge');
 			todo[tmy][tmx].action = 5;
 			todo[tmy][tmx].alpha = 0.5;
 			todo[tmy][tmx].type = 0;
+			todo[tmy][tmx].started=false;
 
 			map[tmy][tmx]=symbols.blueprint;
 
-			all_res.wood-=materials_needed[1];
+			all_res.wood-=materials_needed.bridge;
 			globTasks.build++;
 
-		}else if(todo[tmy][tmx].action==5){
+		}else if(todo[tmy][tmx].action==5 && !todo[tmy][tmx].started){
 
 			map[tmy][tmx]=symbols.water;
 
 			todo[tmy][tmx].destroy();
 			todo[tmy][tmx]=0;
-			all_res.wood+=materials_needed[1];
+			all_res.wood+=materials_needed.bridge;
 			globTasks.build--;
 
 		}
 		txt_wood.text = all_res.wood;
 	}
 
-
 	if(x==1){ //Tree
-		if(map[tmy][tmx]==symbols.grass && todo[tmy][tmx]==0 && all_res.apples>=materials_needed[2]){
+		if(map[tmy][tmx]==symbols.grass && todo[tmy][tmx]==0 && all_res.apples>=materials_needed.tree){
 
 			todo[tmy][tmx]=game.add.sprite(tmx*map_prop.tile_size, tmy*map_prop.tile_size, 'tree');
 			todo[tmy][tmx].action = 5;
@@ -572,23 +586,80 @@ function placeBuilding(mx,my,x){
 			todo[tmy][tmx].x+=map_prop.tile_size/4;
 			todo[tmy][tmx].y+=map_prop.tile_size/4;
 			todo[tmy][tmx].type = 1;
+			todo[tmy][tmx].started=false;
 
 			map[tmy][tmx]=symbols.blueprint;
 
-			all_res.apples-=materials_needed[2];
+			all_res.apples-=materials_needed.tree;
 			globTasks.build++;
 
-		}else if(todo[tmy][tmx].action==5){
+		}else if(todo[tmy][tmx].action==5 && !todo[tmy][tmx].started){
 			todo[tmy][tmx].destroy();
 			todo[tmy][tmx]=0;
 
 			map[tmy][tmx]=symbols.grass;
 
-			all_res.apples+=materials_needed[2];
+			all_res.apples+=materials_needed.tree;
 			globTasks.build--;
 		}
 		txt_wood.text = all_res.wood;
 		txt_apples.text = all_res.apples;
+	}
+
+	if(x==2){ //Floor
+		if(map[tmy][tmx]==symbols.grass && todo[tmy][tmx]==0 && all_res.wood>=materials_needed.floor){
+			
+			//Izveido tur blueprintu
+			todo[tmy][tmx]=game.add.sprite(tmx*map_prop.tile_size, tmy*map_prop.tile_size, 'floor');
+			todo[tmy][tmx].action = 5;
+			todo[tmy][tmx].alpha = 0.5;
+			todo[tmy][tmx].type = 2;
+			todo[tmy][tmx].started=false;
+
+			map[tmy][tmx]=symbols.blueprint;
+
+			all_res.wood-=materials_needed.floor;
+			globTasks.build++;
+
+		}else if(todo[tmy][tmx].action==5 && !todo[tmy][tmx].started){
+
+			map[tmy][tmx]=symbols.grass;
+
+			todo[tmy][tmx].destroy();
+			todo[tmy][tmx]=0;
+			all_res.wood+=materials_needed.floor;
+			globTasks.build--;
+
+		}
+		txt_wood.text = all_res.wood;
+	}
+
+	if(x==3){ //Wall
+		if((map[tmy][tmx]==symbols.grass || map[tmy][tmx]==symbols.floor) && todo[tmy][tmx]==0 && all_res.wood>=materials_needed.wall){
+			
+			//Izveido tur blueprintu
+			todo[tmy][tmx]=game.add.sprite(tmx*map_prop.tile_size, tmy*map_prop.tile_size, 'wall');
+			todo[tmy][tmx].action = 5;
+			todo[tmy][tmx].alpha = 0.5;
+			todo[tmy][tmx].type = 3;
+			todo[tmy][tmx].started=false;
+
+			map[tmy][tmx]=symbols.blueprint;
+
+			all_res.wood-=materials_needed.wall;
+			globTasks.build++;
+
+		}else if(todo[tmy][tmx].action==5 && !todo[tmy][tmx].started){
+
+			map[tmy][tmx]=symbols.wall;
+
+			todo[tmy][tmx].destroy();
+			todo[tmy][tmx]=0;
+			all_res.wood+=materials_needed.wall;
+			globTasks.build--;
+
+		}
+		txt_wood.text = all_res.wood;
 	}
 }
 
