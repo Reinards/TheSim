@@ -87,7 +87,8 @@ var tasks = {
 	goFishing : 3,
 	collectApples : 4,
 	sleep : 5,
-	goHome : 6
+	goHome : 6,
+	walk : 7
 }
 
 var globTasks = {
@@ -320,7 +321,7 @@ function checkTask(){
 		var action=false;
 
 		//If the man is idling
-		if(men[i].task[0] == tasks.idle){
+		if(men[i].task[0] == tasks.idle && men[i].idletime < 10){
 
 			if(game_time.hours>=22 && game_time.hours <= 24){
 				men[i].task[0]=tasks.goHome;
@@ -358,10 +359,25 @@ function checkTask(){
 					men[i].startBuilding();
 					action=true;
 				}
+
+				if(!action){
+					action=true;
+					men[i].idletime++;
+					console.log(men[i].idletime+" Added");
+				}
+
 			}
 
 			
+		}else if(men[i].task[0]==tasks.idle){
+			men[i].idletime++;
+			// console.log(men[i].idletime+" Added");
+			if(men[i].idletime >=10){
+				men[i].idletime=0;
+				men[i].idle();
+			}
 		}
+
 		if(men[i].task[0] == tasks.sleep){
 			if(game_time.hours>=7 && game_time.hours < 10){
 				men[i].task[0]=tasks.idle;

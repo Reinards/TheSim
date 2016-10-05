@@ -6,6 +6,7 @@ function Man(){
 	this.sprite; //Storing the sprite
 	this.icon; //Icon above head
 	this.blueprint; //Blueprint tile
+	this.idletime=0;
 
 	this.pos_x = rnd(4,map_prop.width-5); //X Position divided by tile size
 	this.pos_y = rnd(4,map_prop.height-5); //Y Position divided by tile size
@@ -42,30 +43,77 @@ function Man(){
 
 Man.prototype.use_path = function (y,x,y2,x2,complete){
 
-
 	this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
 	this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
 
+	if(complete){
 
-	//If the action is canceled
-	if(typeof todo[this.gotopos.y][this.gotopos.x].action =='undefined'){
-		this.path = [];
-		this.path.length = 0;
-		job[this.gotopos.y][this.gotopos.x]=0;
-		if(this.task[0]==tasks.getResources)
-			globTasksTaken.getWood--;
-		if(this.task[0]==tasks.collectApples)
-			globTasksTaken.getApples--;
-		if(this.task[0]==tasks.goFishing)
-			globTasksTaken.getFish--;
-		if(this.task[0]==tasks.doBuilding)
-			globTasksTaken.build--;
 
-		this.task[0]=tasks.idle;
-		return;
-	}
+		if(y==y2 && x==x2)
+	 	{
 
-	if(!complete){
+	 		this.path = [];
+	 		this.path.length = 0;
+
+	 		this.idletime=0;
+	 		this.task[0]=tasks.idle;
+
+ 			return;
+ 		}
+
+ 		if(!this.reached){
+
+
+	 		var ytmp = this.path[y][x].y;
+	 		var xtmp = this.path[y][x].x;
+
+
+	 		// if(2>1){
+	 		if(map[ytmp][xtmp]==symbols.grass || map[ytmp][xtmp]==symbols.bridge || map[ytmp][xtmp]==symbols.floor){
+		 		y = ytmp;
+		 		x = xtmp;
+
+		 		game.add.tween(this.sprite).to( { x: xtmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);		
+		 		game.add.tween(this.sprite).to( { y: ytmp*map_prop.tile_size }, (this.speed*100)-30, "Linear", true);
+
+		 		game.time.events.add(this.speed*100, function(){
+		 			this.use_path(y,x,y2,x2,complete);
+		 		}, this);
+		 	}else{
+		 		this.path = [];
+		 		this.path.length = 0;
+
+		 		this.path = find_path(map,this.pos_y,this.pos_x,this.gotopos.y,this.gotopos.x,1);
+
+		 		if(this.path!=0){
+					this.use_path(this.pos_y,this.pos_x,this.gotopos.y,this.gotopos.x,false);	
+				}else{
+					this.path = [];
+		 			this.path.length = 0;
+				}
+		 	}
+	 		
+	 	}
+
+	}else if(!complete){
+
+		//If the action is canceled
+		if(typeof todo[this.gotopos.y][this.gotopos.x].action =='undefined'){
+			this.path = [];
+			this.path.length = 0;
+			job[this.gotopos.y][this.gotopos.x]=0;
+			if(this.task[0]==tasks.getResources)
+				globTasksTaken.getWood--;
+			if(this.task[0]==tasks.collectApples)
+				globTasksTaken.getApples--;
+			if(this.task[0]==tasks.goFishing)
+				globTasksTaken.getFish--;
+			if(this.task[0]==tasks.doBuilding)
+				globTasksTaken.build--;
+
+			this.task[0]=tasks.idle;
+			return;
+		}
 
 	 	if((y+1 == y2 && x==x2)||(y-1 == y2 && x==x2)||(y == y2 && x+1 == x2)||(y == y2 && x-1 == x2))
 	 	{
@@ -96,7 +144,7 @@ Man.prototype.use_path = function (y,x,y2,x2,complete){
  			return;
  		}
 
-	 	 if(!this.reached){
+	 	if(!this.reached){
 
 
 	 		var ytmp = this.path[y][x].y;
@@ -129,27 +177,6 @@ Man.prototype.use_path = function (y,x,y2,x2,complete){
 		 			job[this.gotopos.y][this.gotopos.x]=0;
 				}
 		 	}
-	 		// }else{
-	 		// 	this.reached=true;
-	 		// 	this.path = [];
-				// this.path.length = 0;
-
-				// job[this.gotopos.y][this.gotopos.x]=0;
-
-				// this.path = find_path(map,this.pos_y,this.pos_x,this.gotopos.y,this.gotopos.x,1);
-
-				// console.log(this.path);
-				// debugger;
-				// if(this.path!=0){
-				// 	if(job[this.gotopos.y][this.gotopos.x]==0){
-				// 		job[this.gotopos.y][this.gotopos.x]=1;
-				// 		this.reached=false;
-				// 		this.use_path(this.pos_y,this.pos_x,this.gotopos.y,this.gotopos.x,false);
-						
-				// 	}		
-				// }
-
-				// return;
 	 		
 	 	}
  }
@@ -291,7 +318,42 @@ Man.prototype.find_target_position = function(grid, xs,ys,target,blocked,action)
 
 //====================================//
 
+Man.prototype.idle = function (){
 
+	this.path = [];
+	this.path.length = 0;
+	var temp_path = 0;
+	var tempc = {
+		x : -1,
+		y : -1
+	}
+
+	this.pos_x = Math.floor(this.sprite.x/map_prop.tile_size);
+	this.pos_y = Math.floor(this.sprite.y/map_prop.tile_size);
+
+	while(tempc.x == -1 && temp_path==0){
+		var rndx = rnd(this.pos_x-4,this.pos_x+4);
+		var rndy = rnd(this.pos_y-4,this.pos_y+4);
+
+		if(rndx>=0 && rndx < map_prop.width && rndy >= 0 && rndy < map_prop.height){
+			if(map[rndy][rndx]==symbols.grass || map[rndy][rndx]==symbols.bridge || map[rndy][rndx]==symbols.floor){
+				
+
+				var temp_path2 = find_path(map,this.pos_y,this.pos_x,rndy,rndx,1);
+				if(temp_path2 != 0){
+					tempc.x = rndx;
+					tempc.y = rndy;
+					temp_path = temp_path2;
+				}
+			}
+		}
+	}
+
+	this.path = temp_path;
+	this.task[0]=tasks.walk;
+	this.use_path(this.pos_y,this.pos_x,tempc.y,tempc.x,true);
+
+}
 
 Man.prototype.getResources = function (){
 	this.path = [];
