@@ -252,7 +252,7 @@ function doStuff() {
 
 function updateTime() {
 
-	if(game_time.minutes<10){
+	if(game_time.minutes<30){
 		game_time.minutes++;
 	}else{
 		game_time.minutes=0;

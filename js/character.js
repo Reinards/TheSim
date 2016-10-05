@@ -461,143 +461,143 @@ Man.prototype.destroy_tree = function(pos_x,pos_y){
 	txt_apples.text = all_res.apples;
 	tree.destroy();
 }
-// Man.prototype.buildHouse = function(){
-// 	if(this.house_pos.x >=0){
-// 		this.blueprint = game.add.sprite(this.house_pos.x*map_prop.tile_size, this.house_pos.y*map_prop.tile_size, 'blueprint');
-// 		ground.add(this.blueprint);
-// 		this.blueprint.alpha = 0.5;
+/*Man.prototype.buildHouse = function(){
+	if(this.house_pos.x >=0){
+		this.blueprint = game.add.sprite(this.house_pos.x*map_prop.tile_size, this.house_pos.y*map_prop.tile_size, 'blueprint');
+		ground.add(this.blueprint);
+		this.blueprint.alpha = 0.5;
 
-// 		this.items.wood-=materials_needed[0];
-// 		all_res.wood-=materials_needed[0];
-// 		txt_wood.text = all_res.wood;
+		this.items.wood-=materials_needed[0];
+		all_res.wood-=materials_needed[0];
+		txt_wood.text = all_res.wood;
 
-// 		this.path = find_path(map,this.pos_y,this.pos_x,this.house_pos.y,this.house_pos.x,2);
+		this.path = find_path(map,this.pos_y,this.pos_x,this.house_pos.y,this.house_pos.x,2);
 
-// 		if(this.path!=0){
-// 			this.use_path(this.pos_y,this.pos_x,this.house_pos.y,this.house_pos.x,false);
-// 		}
-// 	}else{
-// 		var spot_x = Math.floor(this.sprite.x/map_prop.tile_size);
-// 		var spot_y = Math.floor(this.sprite.y/map_prop.tile_size);
+		if(this.path!=0){
+			this.use_path(this.pos_y,this.pos_x,this.house_pos.y,this.house_pos.x,false);
+		}
+	}else{
+		var spot_x = Math.floor(this.sprite.x/map_prop.tile_size);
+		var spot_y = Math.floor(this.sprite.y/map_prop.tile_size);
 
-// 		if((spot_y==map_prop.height && spot_x==0)){
-// 			if(map[spot_y][spot_x+1]==0){
-// 					this.house_pos.x = spot_x+1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y-1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y-1;
-// 					this.buildHouse();
-// 			}
-// 		}else if((spot_y==map_prop.height && spot_x==map_prop.width)){
-// 			if(map[spot_y][spot_x-1]==0){
-// 					this.house_pos.x = spot_x-1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y-1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y-1;
-// 					this.buildHouse();
-// 			}
-// 		}else if((spot_y==0 && spot_x==0)){
-// 			if(map[spot_y][spot_x+1]==0){
-// 					this.house_pos.x = spot_x+1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y+1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y+1;
-// 					this.buildHouse();
-// 			}
-// 		}else if((spot_y==0 && spot_x==map_prop.width)){
-// 			if(map[spot_y][spot_x+1]==0){
-// 					this.house_pos.x = spot_x+1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y+1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y+1;
-// 					this.buildHouse();
-// 			}
-// 		}else if((spot_y>0 && spot_y < map_prop.height && spot_x==0)){
-// 			if(map[spot_y][spot_x+1]==0){
-// 					this.house_pos.x = spot_x+1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y-1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y-1;
-// 					this.buildHouse();
-// 			}else if(map[spot_y+1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y+1;
-// 					this.buildHouse();
-// 			}
-// 		}else if((spot_y>0 && spot_y < map_prop.height && spot_x==map_prop.width)){
-// 			if(map[spot_y][spot_x+1]==0){
-// 					this.house_pos.x = spot_x-1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y-1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y-1;
-// 					this.buildHouse();
-// 			}else if(map[spot_y+1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y+1;
-// 					this.buildHouse();
-// 			}
-// 		}else if((spot_y==0 && spot_x>0 && spot_x < map_prop.width)){
-// 			if(map[spot_y][spot_x+1]==0){
-// 					this.house_pos.x = spot_x+1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y][spot_x-1]==0){
-// 					this.house_pos.x = spot_x-1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y+1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y+1;
-// 					this.buildHouse();
-// 			}
-// 		}else if((spot_y==map_prop.height && spot_x>0 && spot_x < map_prop.width)){
-// 			if(map[spot_y][spot_x+1]==0){
-// 					this.house_pos.x = spot_x+1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y][spot_x-1]==0){
-// 					this.house_pos.x = spot_x-1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y-1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y-1;
-// 					this.buildHouse();
-// 			}
-// 		}else{
-// 			if(map[spot_y][spot_x+1]==0){
-// 					this.house_pos.x = spot_x+1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y][spot_x-1]==0){
-// 					this.house_pos.x = spot_x-1;
-// 					this.house_pos.y = spot_y;
-// 					this.buildHouse();
-// 			}else if(map[spot_y+1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y+1;
-// 					this.buildHouse();
-// 			}else if(map[spot_y-1][spot_x]==0){
-// 					this.house_pos.x = spot_x;
-// 					this.house_pos.y = spot_y-1;
-// 					this.buildHouse();
-// 			}
-// 		}
+		if((spot_y==map_prop.height && spot_x==0)){
+			if(map[spot_y][spot_x+1]==0){
+					this.house_pos.x = spot_x+1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y-1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y-1;
+					this.buildHouse();
+			}
+		}else if((spot_y==map_prop.height && spot_x==map_prop.width)){
+			if(map[spot_y][spot_x-1]==0){
+					this.house_pos.x = spot_x-1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y-1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y-1;
+					this.buildHouse();
+			}
+		}else if((spot_y==0 && spot_x==0)){
+			if(map[spot_y][spot_x+1]==0){
+					this.house_pos.x = spot_x+1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y+1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y+1;
+					this.buildHouse();
+			}
+		}else if((spot_y==0 && spot_x==map_prop.width)){
+			if(map[spot_y][spot_x+1]==0){
+					this.house_pos.x = spot_x+1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y+1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y+1;
+					this.buildHouse();
+			}
+		}else if((spot_y>0 && spot_y < map_prop.height && spot_x==0)){
+			if(map[spot_y][spot_x+1]==0){
+					this.house_pos.x = spot_x+1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y-1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y-1;
+					this.buildHouse();
+			}else if(map[spot_y+1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y+1;
+					this.buildHouse();
+			}
+		}else if((spot_y>0 && spot_y < map_prop.height && spot_x==map_prop.width)){
+			if(map[spot_y][spot_x+1]==0){
+					this.house_pos.x = spot_x-1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y-1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y-1;
+					this.buildHouse();
+			}else if(map[spot_y+1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y+1;
+					this.buildHouse();
+			}
+		}else if((spot_y==0 && spot_x>0 && spot_x < map_prop.width)){
+			if(map[spot_y][spot_x+1]==0){
+					this.house_pos.x = spot_x+1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y][spot_x-1]==0){
+					this.house_pos.x = spot_x-1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y+1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y+1;
+					this.buildHouse();
+			}
+		}else if((spot_y==map_prop.height && spot_x>0 && spot_x < map_prop.width)){
+			if(map[spot_y][spot_x+1]==0){
+					this.house_pos.x = spot_x+1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y][spot_x-1]==0){
+					this.house_pos.x = spot_x-1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y-1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y-1;
+					this.buildHouse();
+			}
+		}else{
+			if(map[spot_y][spot_x+1]==0){
+					this.house_pos.x = spot_x+1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y][spot_x-1]==0){
+					this.house_pos.x = spot_x-1;
+					this.house_pos.y = spot_y;
+					this.buildHouse();
+			}else if(map[spot_y+1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y+1;
+					this.buildHouse();
+			}else if(map[spot_y-1][spot_x]==0){
+					this.house_pos.x = spot_x;
+					this.house_pos.y = spot_y-1;
+					this.buildHouse();
+			}
+		}
 
-// 	}
-// }
+	}
+}*/
 Man.prototype.startBuilding = function(x){
 	this.path = [];
 	this.path.length = 0;
@@ -608,6 +608,13 @@ Man.prototype.startBuilding = function(x){
 	//Find a buildable building
 	var ending_pos = this.find_target_position(map,this.pos_x,this.pos_y,symbols.blueprint,1,5);
 	this.gotopos = ending_pos;
+	
+	if(todo[this.pos_y][this.pos_x].type==2 && job[this.pos_y][this.pos_x]==0){
+		ending_pos.x = this.pos_x;
+		ending_pos.y = this.pos_y;
+		this.gotopos = ending_pos;
+	}
+
 	if(ending_pos!=0){
 
 		if(todo[ending_pos.y][ending_pos.x].type==0){
@@ -617,9 +624,19 @@ Man.prototype.startBuilding = function(x){
 
 			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1,null,false);
 		}
-		if(todo[ending_pos.y][ending_pos.x].type==2){
+		if(todo[ending_pos.y][ending_pos.x].type==2){//Floor
 
-			this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1,null,true);
+			if(map[this.pos_y][this.pos_y]==symbols.blueprint){
+				console.log("yees");
+				this.reached=false;
+	 		this.path = [];
+	 		this.path.length = 0;
+				// if(map[this.pos_y-1][this.pos_x]==symbols.grass || map[this.pos_)
+				this.gotopos.x = this.pos_x;
+				this.gotopos.y = this.pos_y;
+				this.doBuilding();
+			}else
+				this.path = find_path(map,this.pos_y,this.pos_x,ending_pos.y,ending_pos.x,1,null,true);
 		}
 		if(todo[ending_pos.y][ending_pos.x].type==3){
 
