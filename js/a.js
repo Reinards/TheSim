@@ -59,7 +59,7 @@ function find_path(grid, ye, xe, ys, xs, blocked,special,blueprints){
 		// Current node
 		var p = rinda.shift();
 		prev_p = p;
-
+		
 		// console.log(p.x + " " + p.y);
 		
 	    //Found result
@@ -357,4 +357,3 @@ function find_target_position(grid, xs,ys,target,blocked){
 //  	}, this);
 	
 // }
-

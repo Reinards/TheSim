@@ -7,6 +7,11 @@ var map_prop = {
 	tile_size : 48
 };
 
+var game_prop = {
+	game_over : false,
+	timeFlow : 30
+}
+
 var map;
 var waters=0;
 
@@ -20,6 +25,11 @@ var symbols = {
 	blueprint:0.2,
 	floor:0.3
 };
+
+var symbols_live = {
+	character : 0,
+	goblin : 1
+}
 
 //An array of occupied tiles
 var job = new Array();
@@ -40,8 +50,14 @@ var middle_level; // <----- Characters
 var trees; // <------------ Trees
 var ui; // <--------------- Icons,buttons,night overlay
 var cursor_group; // <----- Cursor
-// var theTop; // <----------- ??????????????
 
+//Portals
+var g_portal_pos = {
+	x : -1,
+	y : -1,
+}
+var g_portal;
+//---------
 
 //Time area
 var game_time = {
@@ -49,7 +65,8 @@ var game_time = {
 	hours : 7,
 	days : rnd(1,31),
 	months : rnd(1,12),
-	years : rnd(1000,2016)
+	years : rnd(1000,2016),
+	days_spent : 0
 }
 var night;
 //---------
@@ -88,7 +105,8 @@ var tasks = {
 	collectApples : 4,
 	sleep : 5,
 	goHome : 6,
-	walk : 7
+	walk : 7,
+	dead : 8
 }
 
 var globTasks = {
@@ -107,7 +125,7 @@ var globTasksTaken = {
 var materials_needed = {
 	bridge : 3,
 	tree : 2,
-	floor : 3,
+	// floor : 3,
 	wall : 4
 };
 //House, Bridge
@@ -116,6 +134,11 @@ var materials_needed = {
 //Men area
 var men = [];
 //----------
+
+//Goblin area
+var goblins = [];
+var allGoblins = 0;
+//------------
 
 function preload() {
 	game.stage.backgroundColor = '#E8E8E8';
@@ -135,6 +158,9 @@ function preload() {
 	game.load.spritesheet('sleep', 'assets/images/tiles/sleep.png', 48, 48, 5);  //sleep
 	game.load.image('blueprint', 'assets/images/tiles/blueprint.png'); //blueprint
 
+	//Portals
+	game.load.spritesheet('goblin_portal', 'assets/images/tiles/portal1.png', 48, 48);
+
 	//Characters
 	game.load.image('man', 'assets/images/characters/man.png');
 	game.load.image('man2', 'assets/images/characters/man2.png');
@@ -142,6 +168,8 @@ function preload() {
 	game.load.image('man4', 'assets/images/characters/man4.png');
 	game.load.image('man5', 'assets/images/characters/man5.png');
 	game.load.image('man6', 'assets/images/characters/man6.png');
+
+	game.load.spritesheet('goblin', 'assets/images/characters/goblin.png', 48, 48, 7);  //sleep
 
 	//Cursors & UI
 	game.load.image('wood', 'assets/images/ui/wood.png');
@@ -170,6 +198,8 @@ function preload() {
 	game.load.image('cut', 'assets/images/cursors/cursor_cut.png');
 	game.load.image('fishing', 'assets/images/cursors/fishing.png');
 	game.load.image('basket', 'assets/images/cursors/basket.png');
+
+	game.load.image('gameover', 'assets/images/ui/gameover.jpg');
 
 }
 
@@ -232,6 +262,8 @@ function create() {
 	}
 
 	spawnPlayer(4,0,0);
+	// spawnGoblin();
+	// spawnGoblin();
 
 	game.camera.x = men[0].pos_x*map_prop.tile_size-48;
 	game.camera.y = men[0].pos_y*map_prop.tile_size-48;
@@ -253,7 +285,7 @@ function doStuff() {
 
 function updateTime() {
 
-	if(game_time.minutes<30){
+	if(game_time.minutes<game_prop.timeFlow){
 		game_time.minutes++;
 	}else{
 		game_time.minutes=0;
@@ -261,16 +293,26 @@ function updateTime() {
 			game_time.hours++;
 			growTrees();
 			if(game_time.hours == 19)
-				game.add.tween(night).to( { alpha: 0.6 }, (10000*5), "Linear", true);
+				game.add.tween(night).to( { alpha: 0.6 }, (game_prop.timeFlow*5), "Linear", true);
 			else if(game_time.hours == 4)
-				game.add.tween(night).to( { alpha: 0.0 }, (10000*5), "Linear", true);
+				game.add.tween(night).to( { alpha: 0.0 }, (game_prop.timeFlow*5), "Linear", true);
 
 		}
 		else{
 			game_time.hours=0;
 			if(game_time.days<30){
+
 				game_time.days++;
+				game_time.days_spent++;
 				
+
+				if(game_time.days_spent==1)
+					goblinWave(1);
+				if(game_time.days_spent==3)
+					goblinWave(2);
+				if(game_time.days_spent==8)
+					goblinWave(3);
+
 			}else{
 				game_time.days=0;
 				if(game_time.months<12){
@@ -292,97 +334,99 @@ function update() {
 	cursor.x = Math.floor(game.input.mousePointer.x+game.camera.x);
 	cursor.y = Math.floor(game.input.mousePointer.y+game.camera.y);
 
+	if(!game_prop.game_over){
 
-if (cursors.up.isDown)
-    {
-        game.camera.y -= map_prop.camera_speed;
-    }
-    else if (cursors.down.isDown)
-    {
-        game.camera.y += map_prop.camera_speed;
-    }
+		if (cursors.up.isDown)
+	    {
+	        game.camera.y -= map_prop.camera_speed;
+	    }
+	    else if (cursors.down.isDown)
+	    {
+	        game.camera.y += map_prop.camera_speed;
+	    }
 
-    if (cursors.left.isDown)
-    {
-        game.camera.x -= map_prop.camera_speed;
-    }
-    else if (cursors.right.isDown)
-    {
-        game.camera.x += map_prop.camera_speed;
-    }
+	    if (cursors.left.isDown)
+	    {
+	        game.camera.x -= map_prop.camera_speed;
+	    }
+	    else if (cursors.right.isDown)
+	    {
+	        game.camera.x += map_prop.camera_speed;
+	    }
+	}
 
 }
 
 
 /*If the man is idling, check for stuff to do*/
 function checkTask(){
+	if(!game_prop.game_over){
+		for(var i=0;i<men.length;i++){
+			var action=false;
 
-	for(var i=0;i<men.length;i++){
-		var action=false;
+			if(men[i].dead==false){
 
-		//If the man is idling
-		if(men[i].task[0] == tasks.idle && men[i].idletime < 10){
+				if(men[i].task[0] == tasks.idle && men[i].idletime < 10){
 
-			if(game_time.hours>=22 && game_time.hours <= 24){
-				men[i].task[0]=tasks.goHome;
-				men[i].goToSleep();
-			}else{
+					if(game_time.hours>=22 && game_time.hours <= 24){
+						men[i].task[0]=tasks.goHome;
+						men[i].goToSleep();
+					}else{
 
-				// console.log("W "+globTasks.getWood + "/" + globTasksTaken.getWood);
-				// console.log("B "+globTasks.build + "/" + globTasksTaken.build);
+						// console.log(globTasks.getWood + " " + globTasksTaken.getWood + " " + action);
+						// 
 
-				if(globTasks.getWood > 0 && globTasks.getWood > globTasksTaken.getWood && !action){
+						if(globTasks.getWood > 0 && globTasks.getWood > globTasksTaken.getWood && !action){
+							men[i].task[0] = tasks.getResources;
+							globTasksTaken.getWood+=1;
+							men[i].getResources();
+							action=true;
+						}
+						if(globTasks.getApples > 0 && globTasks.getApples > globTasksTaken.getApples && !action){
 
-					men[i].task[0] = tasks.getResources;
-					globTasksTaken.getWood+=1;
-					men[i].getResources();
-					action=true;
-				}
-				if(globTasks.getApples > 0 && globTasks.getApples > globTasksTaken.getApples && !action){
+							men[i].task[0] = tasks.collectApples;
+							globTasksTaken.getApples+=1;
+							men[i].getApples();
+							action=true;
+						}
+						if(globTasks.getFish > 0 && globTasks.getFish > globTasksTaken.getFish && !action){
 
-					men[i].task[0] = tasks.collectApples;
-					globTasksTaken.getApples+=1;
-					men[i].getApples();
-					action=true;
-				}
-				if(globTasks.getFish > 0 && globTasks.getFish > globTasksTaken.getFish && !action){
+							men[i].task[0] = tasks.goFishing;
+							globTasksTaken.getFish+=1;
+							men[i].goFishing();
+							action=true;
+						}
+						if(globTasks.build > 0 && globTasks.build > globTasksTaken.build && !action){
 
-					men[i].task[0] = tasks.goFishing;
-					globTasksTaken.getFish+=1;
-					men[i].goFishing();
-					action=true;
-				}
-				if(globTasks.build > 0 && globTasks.build > globTasksTaken.build && !action){
+							men[i].task[0] = tasks.doBuilding;
+							globTasksTaken.build+=1;
+							men[i].startBuilding();
+							action=true;
+						}
 
-					men[i].task[0] = tasks.doBuilding;
-					globTasksTaken.build+=1;
-					men[i].startBuilding();
-					action=true;
-				}
+						if(!action){
+							action=true;
+							men[i].idletime++;
+						}
 
-				if(!action){
-					action=true;
+					}
+
+					
+				}else if(men[i].task[0]==tasks.idle){
 					men[i].idletime++;
-					console.log(men[i].idletime+" Added");
+					// 
+					if(men[i].idletime >=10){
+						men[i].idletime=0;
+						men[i].idle();
+					}
 				}
-
+				if(men[i].task[0] == tasks.sleep){
+					if(game_time.hours>=7 && game_time.hours < 10){
+						men[i].task[0]=tasks.idle;
+						men[i].wakeUp();
+					}	
+				}
 			}
-
-			
-		}else if(men[i].task[0]==tasks.idle){
-			men[i].idletime++;
-			// console.log(men[i].idletime+" Added");
-			if(men[i].idletime >=10){
-				men[i].idletime=0;
-				men[i].idle();
-			}
-		}
-
-		if(men[i].task[0] == tasks.sleep){
-			if(game_time.hours>=7 && game_time.hours < 10){
-				men[i].task[0]=tasks.idle;
-				men[i].wakeUp();
-			}	
 		}
 	}
 }
@@ -469,6 +513,7 @@ function markTree(mx,my){
 		globTasks.getWood +=1;
 		tempChoosed=true;
 
+
 	 }else if(map[tmy][tmx]==1 && todo[tmy][tmx].action==1 && !tempChoosed && !todo[tmy][tmx].started){
 	 	todo[tmy][tmx].destroy();
 	 	todo[tmy][tmx]=0;
@@ -517,7 +562,7 @@ function markAppleTree(mx,my){
 	 	}
 	}
 
-	// console.log(globTasks.getWood);
+	// 
 }
 
 function markFishingSpot(mx,my){
@@ -556,7 +601,7 @@ function markFishingSpot(mx,my){
 	 	}
 	}
 
-	// console.log(globTasks.getWood);
+	// 
 }
 function placeBuilding(mx,my,x){
 
@@ -622,33 +667,33 @@ function placeBuilding(mx,my,x){
 		txt_apples.text = all_res.apples;
 	}
 
-	if(x==2){ //Floor
-		if(map[tmy][tmx]==symbols.grass && todo[tmy][tmx]==0 && all_res.wood>=materials_needed.floor){
+	// if(x==2){ //Floor
+	// 	if(map[tmy][tmx]==symbols.grass && todo[tmy][tmx]==0 && all_res.wood>=materials_needed.floor){
 			
-			//Izveido tur blueprintu
-			todo[tmy][tmx]=game.add.sprite(tmx*map_prop.tile_size, tmy*map_prop.tile_size, 'floor');
-			todo[tmy][tmx].action = 5;
-			todo[tmy][tmx].alpha = 0.5;
-			todo[tmy][tmx].type = 2;
-			todo[tmy][tmx].started=false;
+	// 		//Izveido tur blueprintu
+	// 		todo[tmy][tmx]=game.add.sprite(tmx*map_prop.tile_size, tmy*map_prop.tile_size, 'floor');
+	// 		todo[tmy][tmx].action = 5;
+	// 		todo[tmy][tmx].alpha = 0.5;
+	// 		todo[tmy][tmx].type = 2;
+	// 		todo[tmy][tmx].started=false;
 
-			map[tmy][tmx]=symbols.blueprint;
+	// 		map[tmy][tmx]=symbols.blueprint;
 
-			all_res.wood-=materials_needed.floor;
-			globTasks.build++;
+	// 		all_res.wood-=materials_needed.floor;
+	// 		globTasks.build++;
 
-		}else if(todo[tmy][tmx].action==5 && !todo[tmy][tmx].started){
+	// 	}else if(todo[tmy][tmx].action==5 && !todo[tmy][tmx].started){
 
-			map[tmy][tmx]=symbols.grass;
+	// 		map[tmy][tmx]=symbols.grass;
 
-			todo[tmy][tmx].destroy();
-			todo[tmy][tmx]=0;
-			all_res.wood+=materials_needed.floor;
-			globTasks.build--;
+	// 		todo[tmy][tmx].destroy();
+	// 		todo[tmy][tmx]=0;
+	// 		all_res.wood+=materials_needed.floor;
+	// 		globTasks.build--;
 
-		}
-		txt_wood.text = all_res.wood;
-	}
+	// 	}
+	// 	txt_wood.text = all_res.wood;
+	// }
 
 	if(x==3){ //Wall
 		if((map[tmy][tmx]==symbols.grass || map[tmy][tmx]==symbols.floor) && todo[tmy][tmx]==0 && all_res.wood>=materials_needed.wall){
@@ -756,7 +801,128 @@ function spawnPlayer(n,x,y){
 
 }
 
+function spawnGoblin(){
+	
+		var temp_go = new Goblin();
+		temp_go.task="Idle";
+
+		temp_go.pos_x = g_portal_pos.x;
+		temp_go.pos_y = g_portal_pos.y;
+		
+		
+
+		temp_go.sprite = game.add.sprite(temp_go.pos_x*map_prop.tile_size, temp_go.pos_y*map_prop.tile_size, "goblin");
+		temp_go.portal_pos.x = g_portal_pos.x;
+		temp_go.portal_pos.y = g_portal_pos.y;
+
+		temp_go.task[0]="n";
+
+		temp_go.sprite.animations.add('move');
+    	temp_go.sprite.animations.play('move', rnd(14,15), true);
+
+		middle_level.add(temp_go.sprite);
+
+		goblins.push(temp_go);
+		allGoblins+=1;
+
+		temp_go.searchForFlesh();
+}
+
+function goblinWave(n){
+	while(g_portal_pos.x==-1){
+		var tpx = rnd(1,map_prop.width-2);
+		var tpy = rnd(1,map_prop.height-2);
+
+		
+
+		if(map[tpy][tpx]==0 && map[tpy-1][tpx]==0 && map[tpy][tpx+1]==0 && map[tpy+1][tpx]==0 && map[tpy][tpx-1]==0){
+			g_portal_pos.x = tpx;
+			g_portal_pos.y = tpy;
+
+		}
+	}
+
+	g_portal = game.add.sprite(g_portal_pos.x*map_prop.tile_size, g_portal_pos.y*map_prop.tile_size, "goblin_portal");
+
+	ground.add(g_portal);
+	g_portal.animations.add('magic');
+    g_portal.animations.play('magic', 3, true);
+
+
+	if(n==1){
+		spawnGoblin();
+	}
+	if(n==2){
+		for(var i=0;i<4;i++){
+			game.time.events.add(i*800, function(){
+			 	spawnGoblin();
+			}, this);	
+		}
+	}
+	if(n==3){
+		for(var i=0;i<10;i++){
+			game.time.events.add(i*800, function(){
+			 	spawnGoblin();
+			}, this);
+		}
+	}
+	
+}
+
+function destroyCreature(x){
+	if(x == symbols_live.goblin){
+		for(var i=0;i<goblins.length;i++){
+			if(goblins[i].needsToBeDestroyed){
+				goblins[i].sprite.destroy();
+				goblins[i]=0;
+				allGoblins-=1;
+
+				if(allGoblins==0){
+					console.log("en");
+					g_portal.destroy();
+					g_portal=0;
+					g_portal_pos.x=-1;
+					g_portal_pos.y=-1;
+					return;
+				}
+			}
+		}
+	}
+}
 
 function rnd(min,max){
     return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+function checkGame(){
+	if(!game_prop.game_over){
+		var menCount = men.length;
+		var deadCount = 0;
+		for(var i=0;i<men.length;i++){
+			if(men[i].dead)deadCount++;
+		}
+
+		if(menCount==deadCount){
+			gameOver();
+		}
+	}
+}
+
+function gameOver(){
+	game_prop.game_over=true;
+
+	var eg = game.add.sprite(game.camera.x+400, game.camera.y+300, 'gameover');
+	eg.inputEnabled = true;
+	eg.anchor.setTo(0.5);
+	eg.alpha=0;
+
+	game.world.bringToTop(cursor_group);
+
+	game.add.tween(eg).to( { alpha: 1.0 }, (2000), "Linear", true);
+
+	eg.events.onInputDown.add(function(){
+		if(eg.alpha==1)
+			location.reload();
+	}, this);
+
 }

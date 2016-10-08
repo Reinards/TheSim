@@ -28,9 +28,9 @@ UserInterface.prototype.drawUI = function(){
 		if(cursor.now==5){ //Mark tree spot
 			placeBuilding(game.input.mousePointer.x+game.camera.x,game.input.mousePointer.y+game.camera.y,1);
 		}
-		if(cursor.now==6){ //Place floor
-			placeBuilding(game.input.mousePointer.x+game.camera.x,game.input.mousePointer.y+game.camera.y,2);
-		}
+		// if(cursor.now==6){ //Place floor
+		// 	placeBuilding(game.input.mousePointer.x+game.camera.x,game.input.mousePointer.y+game.camera.y,2);
+		// }
 		if(cursor.now==7){ //Place wall
 			placeBuilding(game.input.mousePointer.x+game.camera.x,game.input.mousePointer.y+game.camera.y,3);
 		}
@@ -166,20 +166,20 @@ UserInterface.prototype.drawUI = function(){
 	}, this);
 	construct.subs.push(tree);
 
-	floor = game.add.sprite(800-48*3, map_prop.tile_size*3, 'floor_gui');
-	floor.fixedToCamera=true;
-	floor.visible = false;
-	floor.inputEnabled = true;
-	ui.add(floor);
-	floor.events.onInputDown.add(function(){
-		cursor.loadTexture('floor');
-		cursor.now=6; //Lay floor
-		cursor.anchor.setTo(0.5);
-		game.world.bringToTop(cursor);
-	}, this);
-	construct.subs.push(floor);
+	// floor = game.add.sprite(800-48*3, map_prop.tile_size*3, 'floor_gui');
+	// floor.fixedToCamera=true;
+	// floor.visible = false;
+	// floor.inputEnabled = true;
+	// ui.add(floor);
+	// floor.events.onInputDown.add(function(){
+	// 	cursor.loadTexture('floor');
+	// 	cursor.now=6; //Lay floor
+	// 	cursor.anchor.setTo(0.5);
+	// 	game.world.bringToTop(cursor);
+	// }, this);
+	// construct.subs.push(floor);
 
-	wall = game.add.sprite(800-48*3, map_prop.tile_size*4, 'wall_gui');
+	wall = game.add.sprite(800-48*3, map_prop.tile_size*3, 'wall_gui');
 	wall.fixedToCamera=true;
 	wall.visible = false;
 	wall.inputEnabled = true;

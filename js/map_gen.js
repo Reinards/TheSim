@@ -17,7 +17,7 @@ function generate_map(width,height,gen_trees,gen_water){
 		for (j=0;j<width;j++) {
 
 			if(gen_trees){
-				var decision = rnd(0,20);
+				var decision = rnd(0,50);
 
 				if(decision == 0){
 					//--------FOREST GENERATION--------------

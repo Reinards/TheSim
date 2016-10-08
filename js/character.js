@@ -8,6 +8,9 @@ function Man(){
 	this.blueprint; //Blueprint tile
 	this.idletime=0;
 
+	this.health = 100;
+	this.dead=false;
+
 	this.pos_x = rnd(4,map_prop.width-5); //X Position divided by tile size
 	this.pos_y = rnd(4,map_prop.height-5); //Y Position divided by tile size
 	this.reached = false; //Has reached the path's end point
@@ -18,7 +21,8 @@ function Man(){
 	this.path; //Stores path
 	
 	this.age = rnd(16,77); //His age
-	this.speed = rnd(4,6); //His speed
+	this.speed = rnd(4,5); //His speed
+	this.power = rnd(5,6);
 
 	this.skills = { //His skills
 		building : rnd(1,3),
@@ -99,6 +103,7 @@ Man.prototype.use_path = function (y,x,y2,x2,complete){
 
 		//If the action is canceled
 		if(typeof todo[this.gotopos.y][this.gotopos.x].action =='undefined'){
+				// console.log(todo[this.gotopos.y][this.gotopos.x].action);
 			this.path = [];
 			this.path.length = 0;
 			job[this.gotopos.y][this.gotopos.x]=0;
@@ -163,7 +168,6 @@ Man.prototype.use_path = function (y,x,y2,x2,complete){
 		 			this.use_path(y,x,y2,x2,complete);
 		 		}, this);
 		 	}else{
-		 		console.log("MAPS : "+map[ytmp][xtmp]);
 		 		this.path = [];
 		 		this.path.length = 0;
 
@@ -314,7 +318,32 @@ Man.prototype.find_target_position = function(grid, xs,ys,target,blocked,action)
 			return target_pos;
 		}
 }
+Man.prototype.die = function(){
+	var side = rnd(0,4);
+		if(side<=2){
+			this.task[0]=tasks.dead;
 
+			// this.sprite.angle = 90;
+			game.add.tween(this.sprite).to( { angle: 90 }, 300, "Linear", true);	
+
+			this.sprite.anchor.setTo(0.5);
+			this.sprite.x+=24;
+			this.sprite.y+=24;
+			this.dead=true;
+			
+		}else{
+			this.task[0]=tasks.dead;
+
+			// this.sprite.angle = 270;
+			game.add.tween(this.sprite).to( { angle: -90 }, 300, "Linear", true);	
+
+			this.sprite.anchor.setTo(0.5);
+			this.sprite.x+=24;
+			this.sprite.y+=24;
+
+			this.dead=true;
+		}
+}
 
 //====================================//
 
@@ -356,6 +385,7 @@ Man.prototype.idle = function (){
 }
 
 Man.prototype.getResources = function (){
+
 	this.path = [];
 	this.path.length = 0;
 
@@ -380,7 +410,6 @@ Man.prototype.getResources = function (){
 			this.task[0]=tasks.idle;
 			return;
 	}
-
 	
 }
 
@@ -757,22 +786,22 @@ Man.prototype.doBuilding = function(){
 
 			trees.add(tile);
 		}
-		if(todo[this.gotopos.y][this.gotopos.x].type==2){ //Floor
+		// if(todo[this.gotopos.y][this.gotopos.x].type==2){ //Floor
 
-			var tile;
-			for (var i = 0; i < ground.children.length; i++) {  
-				var tile_x = Math.floor(ground.children[i].x/map_prop.tile_size);
-				var tile_y = Math.floor(ground.children[i].y/map_prop.tile_size);
+		// 	var tile;
+		// 	for (var i = 0; i < ground.children.length; i++) {  
+		// 		var tile_x = Math.floor(ground.children[i].x/map_prop.tile_size);
+		// 		var tile_y = Math.floor(ground.children[i].y/map_prop.tile_size);
 
-				if(tile_x == this.gotopos.x && tile_y == this.gotopos.y){
-					tile = ground.children[i];
-					break;
-				}
-			}
-			map[this.gotopos.y][this.gotopos.x]=symbols.grass;
-			tile.loadTexture("floor");
-		}
-		if(todo[this.gotopos.y][this.gotopos.x].type==3){ //Bridge
+		// 		if(tile_x == this.gotopos.x && tile_y == this.gotopos.y){
+		// 			tile = ground.children[i];
+		// 			break;
+		// 		}
+		// 	}
+		// 	map[this.gotopos.y][this.gotopos.x]=symbols.grass;
+		// 	tile.loadTexture("floor");
+		// }
+		if(todo[this.gotopos.y][this.gotopos.x].type==3){ //Wall
 			var tile = game.add.sprite(this.gotopos.x*map_prop.tile_size, this.gotopos.y*map_prop.tile_size, 'wall');
 			map[this.gotopos.y][this.gotopos.x]=symbols.wall;
 			ground.add(tile);
